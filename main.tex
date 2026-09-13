@@ -1,0 +1,1444 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{mathptmx}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, fit, backgrounds, calc}
+
+% ---- Global Formatting ----
+\geometry{letterpaper, margin=1in}
+\setstretch{1.05}
+\setlength{\parindent}{0.5in}
+\setlength{\parskip}{0pt}
+
+% ---- Float placement tuning ----
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+\renewcommand{\topfraction}{0.85}
+\renewcommand{\bottomfraction}{0.5}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.7}
+
+% ---- Page Headers ----
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Team \#10000}
+\fancyhead[R]{\small Page \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{14.5pt}
+
+% ---- TOC ----
+\setcounter{tocdepth}{3}
+
+\begin{document}
+
+% ============================================================
+% SUMMARY SHEET (Page 1)
+% ============================================================
+\thispagestyle{empty}
+
+\vspace*{-20pt}
+\noindent
+\begin{minipage}[c]{0.32\textwidth}
+\centering
+\textbf{Problem Chosen}\\[3pt]
+{\Large\textcolor{red}{\textbf{A}}}
+\end{minipage}%
+\begin{minipage}[c]{0.34\textwidth}
+\centering
+\textbf{2026 HiMCM}\\[3pt]
+\textbf{Summary Sheet}
+\end{minipage}%
+\begin{minipage}[c]{0.34\textwidth}
+\centering
+\textbf{Team Control Number}\\[3pt]
+{\Large\textcolor{red}{\textbf{10000}}}
+\end{minipage}
+
+\vspace{6pt}
+\hrule
+\vspace{12pt}
+
+In five years, the number of electric vehicles on Springfield's roads has grown nearly
+sevenfold, from 320 to 2,180. Yet the city's public charging network has not kept pace.
+One district, Riverside, has 120 electric cars and not a single public charger. Another,
+Downtown, has 420 electric cars competing for just 12 chargers. This is the gap our team
+was hired to close. GreenCharge asked us three questions: where is the demand greatest,
+where should the first stations go, and how should the network grow over the next five
+years.
+
+We answer all three with a single, transparent framework built from the city's own data.
+To find demand, we score each of the nine districts on six factors: population, number of
+electric vehicles, how concentrated those vehicles are, daily traffic volume, how few
+public chargers already exist, and the type of district. We weight these factors
+objectively, using a method that gives more importance to the factors on which districts
+actually differ, rather than asking anyone for a subjective opinion. The result is a
+priority score from 0 to 100 for every district.
+
+To choose the first stations, we turn the decision into a precise optimization problem. We
+rank the ten candidate sites by how much demand they serve, how central their location is,
+and how much they cost to build. We then search every allowable combination of four to six
+sites under a two-million-dollar budget, picking the set that serves the most demand first
+and using centrality and cost only to settle ties. The winning set places six stations
+across five districts, spends \$1.98 million, and reaches the five districts where drivers
+need charging most urgently.
+
+To plan the future, we forecast electric-vehicle growth with a time-series model that
+extends the recent growth trend rather than imposing a fixed curve. The model projects
+about 3,200 vehicles by 2025 and 11,900 by 2030. We use this forecast,
+together with a break-even rule that signals when the chargers already built are nearing
+capacity, to lay out a three-phase roadmap that grows the network from 6 stations to a
+full 10, covering all nine districts by 2030.
+
+Finally, we test how much the plan depends on our assumptions. If our growth forecast is
+off by 20\% in either direction, the phases shift by roughly one year, but the order in
+which we build does not change. If construction costs rise 15\%, we build five stations
+instead of six in the first phase. We deliver our findings as a plain-language report to
+the Mayor, with a clear recommendation: begin with the six-station core in Downtown,
+Northside, Southside, Eastside, and Westside, and treat Riverside's zero-charger gap as
+the single highest-leverage opportunity in the city.
+
+\vspace{12pt}
+\hrule
+\vspace{2pt}
+\noindent\textbf{Keywords:} electric vehicle charging; facility location; TOPSIS; entropy-weight method; integer programming; technology diffusion; demand forecasting; sensitivity analysis; graph connectivity; phased deployment.
+
+\newpage
+
+% ============================================================
+% TABLE OF CONTENTS
+% ============================================================
+\tableofcontents
+\newpage
+
+% ======================================================================
+% SECTION 1: INTRODUCTION
+% ======================================================================
+\section{Introduction}
+
+\subsection{Background and Real-World Motivation}
+
+Transportation is the largest source of greenhouse gas emissions in most American cities,
+and the fastest available lever for cutting those emissions is electrification. Springfield
+has committed to a 50\% reduction in carbon emissions by 2030, and converting its
+vehicle fleet to electricity is the stated centerpiece of that plan. The commitment is
+already visible in the data: the city's electric-vehicle (EV) registrations grew from 320
+in 2019 to 2,180 in 2024, a nearly sevenfold increase over five years.
+
+The public charging network, however, has not grown in step. Across the nine districts,
+existing public chargers number in the single digits, and one district, Riverside, has
+none at all. This mismatch matters because public charging is a prerequisite for adoption.
+Drivers who cannot charge at home---apartment residents, commuters, and commercial fleets---
+postpone or abandon EV purchases when public chargers are scarce. The deployment of
+charging stations is therefore not a passive response to demand; it is a driver of demand.
+Getting the placement right accelerates the city's climate goals. Getting it wrong strands
+investment in underused locations.
+
+The Mayor's Office has asked our team to design this network deliberately. The task is
+inherently quantitative: demand is unevenly distributed across districts, candidate sites
+differ in cost and capacity, and the network must grow over time as adoption spreads.
+These features make the problem a natural fit for formal optimization and evaluation
+methods.
+
+\subsection{Problem Restatement}
+
+We address four connected tasks. (1) Assess where current charging demand is concentrated
+by identifying the factors that drive demand and ranking the nine districts by a computed
+demand-priority score. (2) Select the optimal first-phase set of four to six charging
+stations from ten candidate sites under a two-million-dollar installation budget, while
+maximizing demand coverage and using network centrality and cost as tie-breakers.
+(3) Analyze the connectivity of the district
+network and use the results, together with a forecast of EV growth, to build a phased
+deployment roadmap from 2025 to 2030. (4) Deliver a plain-language recommendation report
+to the Mayor and City Council.
+
+\subsection{Our Work and Overall Framework}
+
+Our solution proceeds in three stages, mirroring the three modeling tasks.
+
+\textbf{Stage 1 (Data and Demand Assessment)} first screens the raw data for missing
+values, outliers, and collinear indicators, then builds a six-indicator evaluation system
+for the nine districts. An entropy-weight method derives objective indicator weights from
+the data itself, and TOPSIS converts each district's indicator profile into a
+demand-priority score on a 0--100 scale. An ARIMA time-series model forecasts citywide EV
+registrations through 2030.
+
+\textbf{Stage 2 (Core Optimization)} attaches three quantities to each candidate site:
+demand coverage, degree centrality, and installation cost. A lexicographic zero-one
+integer program selects the set of four to six sites that maximizes demand first and uses
+centrality and cost only to break ties, under the budget, land, capacity, and coverage
+constraints, solved exactly by enumeration. We also construct the district connectivity
+graph and compute node degrees.
+
+\textbf{Stage 3 (Expansion and Recommendation)} derives a break-even rule to time each
+build phase, then solves a discounted multi-period integer program that optimizes all
+three phases together. The result is a phased deployment roadmap tested against
+perturbations in growth, cost, and budget, distilled into a non-technical letter to the
+Mayor.
+
+\begin{figure}[htbp]
+\centering
+\definecolor{c1}{HTML}{2C6FBB}
+\definecolor{c2}{HTML}{2A9D8F}
+\definecolor{c3}{HTML}{D9862B}
+\definecolor{iod}{HTML}{6B7280}
+\definecolor{otd}{HTML}{2D6A4F}
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[x=1mm, y=1mm,
+  box/.style={draw=#1!75!black, fill=#1!12, rounded corners=2.5pt,
+              text width=28mm, minimum height=15mm, align=center,
+              font=\small, inner sep=3pt},
+  inp/.style={draw=iod!80!black, fill=iod!12, rounded corners=2.5pt,
+              text width=23mm, minimum height=14mm, align=center,
+              font=\footnotesize, inner sep=3pt},
+  out/.style={draw=#1!80!black, fill=#1!28, rounded corners=2.5pt,
+              text width=23mm, minimum height=14mm, align=center,
+              font=\footnotesize, inner sep=3pt},
+  head/.style={fill=#1, text=white, font=\small\bfseries, rounded corners=2pt,
+               inner sep=3pt, text width=126mm, align=center, minimum height=7mm},
+  arr/.style={-{Stealth[length=2.4mm]}, thick, draw=#1!65!black},
+  varrow/.style={-{Stealth[length=3mm]}, very thick, draw=gray!50},
+]
+% ---- global INPUT ----
+\node[inp, text width=122mm, minimum height=8mm, font=\small] (gin) at (0,0)
+  {\textbf{INPUT (raw data)}: nine districts $\times$ six indicators \ $\cdot$ \ ten candidate sites (cost, capacity, land) \ $\cdot$ \ distance matrix \ $\cdot$ \ historical EV 2019--2024 \ $\cdot$ \ budget \$2M};
+
+% ---- Stage 1 ----
+\node[head=c1] (h1) at (0,-18) {Stage 1: Data \& Demand Assessment};
+\node[inp] (i1) at (-60,-38) {Input:\\ district indicators,\\ historical EV};
+\node[box=c1] (b11) at (-31,-38) {Screen data: missing,\\ outliers, correlation};
+\node[box=c1] (b12) at (0,-38) {Entropy weights $w_j$\\ (information entropy)};
+\node[box=c1] (b13) at (31,-38) {TOPSIS closeness\\ $C_i$};
+\node[out=c1] (o1) at (60,-38) {Output:\\ demand scores,\\ EV forecast};
+\draw[arr=c1] (i1.east) -- (b11.west);
+\draw[arr=c1] (b11.east) -- (b12.west);
+\draw[arr=c1] (b12.east) -- (b13.west);
+\draw[arr=c1] (b13.east) -- (o1.west);
+
+% ---- Stage 2 ----
+\node[head=c2] (h2) at (0,-58) {Stage 2: Core Optimization (lexicographic 0/1 IP)};
+\node[inp] (i2) at (-60,-78) {Input:\\ demand scores,\\ site cost/land};
+\node[box=c2] (b21) at (-31,-78) {Site attributes $D_s$\\ (demand), $C_s$ (degree),\\ $c_s$ (cost)};
+\node[box=c2] (b22) at (0,-78) {Lexicographic IP: max $D_s$,\\ then $C_s$, then cost;\\ budget $+$ coverage};
+\node[box=c2] (b23) at (31,-78) {Exact enumeration\\ of $C(10,4..6)$\\ subsets};
+\node[out=c2] (o2) at (60,-78) {Output:\\ optimal sites\\ S1--S6, $\sum D_s{=}3.32$};
+\draw[arr=c2] (i2.east) -- (b21.west);
+\draw[arr=c2] (b21.east) -- (b22.west);
+\draw[arr=c2] (b22.east) -- (b23.west);
+\draw[arr=c2] (b23.east) -- (o2.west);
+
+% ---- Stage 3 ----
+\node[head=c3] (h3) at (0,-98) {Stage 3: Expansion \& Recommendation};
+\node[inp] (i3) at (-60,-118) {Input:\\ site set, ranking,\\ EV forecast};
+\node[box=c3] (b31) at (-31,-118) {District graph\\ (edges $\le5$ mi),\\ node degrees};
+\node[box=c3] (b32) at (0,-118) {Phased roadmap\\ 2025--2030};
+\node[box=c3] (b33) at (31,-118) {Sensitivity: growth\\ $\pm20\%$, cost $\pm15\%$,\\ budget};
+\node[out=c3] (o3) at (60,-118) {Output:\\ deployment plan,\\ letter to Mayor};
+\draw[arr=c3] (i3.east) -- (b31.west);
+\draw[arr=c3] (b31.east) -- (b32.west);
+\draw[arr=c3] (b32.east) -- (b33.west);
+\draw[arr=c3] (b33.east) -- (o3.west);
+
+% ---- global OUTPUT ----
+\node[out=otd, text width=122mm, minimum height=8mm, font=\small] (gout) at (0,-138)
+  {\textbf{OUTPUT (deliverables)}: demand ranking \ $\cdot$ \ sites S1--S6 \ $\cdot$ \ EV forecast \ $\cdot$ \ phased roadmap \ $\cdot$ \ letter to Mayor};
+
+% ---- vertical flow arrows ----
+\draw[varrow] (gin.south) -- (gin.south |- h1.north);
+\draw[varrow] (o1.south) -- (o1.south |- h2.north);
+\draw[varrow] (o2.south) -- (o2.south |- h3.north);
+\draw[varrow] (o3.south) -- (o3.south |- gout.north);
+\end{tikzpicture}}
+\caption{Three-stage workflow of the deployment framework, with explicit input and output at each stage. The top gray box lists the raw inputs and the bottom green box the final deliverables. Stage 1 (blue) screens the data and produces demand-priority scores and an EV forecast; Stage 2 (teal) ranks sites by demand, degree centrality, and cost, then solves the lexicographic integer program to select S1--S6; Stage 3 (orange) builds the district graph, times phases by break-even thresholds, and runs sensitivity tests. Gray arrows mark transitions between stages, so every later task consumes the output of the preceding one.}
+\label{fig:workflow}
+\end{figure}
+
+% ======================================================================
+% SECTION 2: ASSUMPTIONS
+% ======================================================================
+\section{Assumptions and Justification}
+
+We state our modeling assumptions explicitly and justify each one.
+
+\textbf{Assumption 1:} Public charging demand is driven primarily by population, EV
+density, traffic volume, existing charger scarcity, and district type.
+\textit{Justification:} These are the factors the problem statement names, and they align
+with empirical studies of charging-station utilization, which consistently find that
+usage tracks local EV ownership, passing traffic, and the absence of home-charging
+alternatives \cite{DOE-AFDC, NREL2017}. Commercial and administrative districts generate
+additional daytime demand from commuters and visitors, captured by the district-type
+factor.
+
+\textbf{Assumption 2:} Citywide EV adoption can be forecast from its own six-year history
+with an ARIMA time-series model, and it cannot exceed a long-run ceiling of roughly 25,000
+vehicles.
+\textit{Justification:} ARIMA lets the recent data set the trajectory rather than imposing
+a fixed shape, which is the natural choice when the only reliable predictor is the series'
+own past \cite{Box2015, Hyndman2018}. Springfield has roughly 48,000 households and 91,000
+vehicles; a 25\% long-run EV share corresponds to about 23,000--25,000 vehicles, a
+plausible saturation for a city committed to deep decarbonization \cite{Bass1969}. A pure
+ARIMA has no such ceiling, so we impose the 25,000 upper bound explicitly to keep the
+forecast from growing without limit.
+
+\textbf{Assumption 3:} The candidate sites listed in Table 2 are the only feasible
+locations, and their reported costs and capacities are accurate.
+\textit{Justification:} The problem supplies these as the decision set. Site-specific
+engineering constraints (electrical service, land) are already reflected in the
+land-availability and maximum-capacity fields.
+
+\textbf{Assumption 4:} A station serves demand in its own district and, to a lesser
+degree, nearby districts, with proximity captured by the distance matrix.
+\textit{Justification:} Drivers strongly prefer the nearest available charger. The
+distance matrix in Table 3 allows us to measure each district's centrality within the
+network, expressed as node degree and used as a tie-breaking objective in the
+lexicographic location model.
+
+\textbf{Assumption 5:} The district distance matrix is symmetric and represents driving
+distance between district centroids.
+\textit{Justification:} The supplied matrix is symmetric, consistent with road-network
+travel between district centers. We use it both for the connectivity graph (Task 2-c) and
+for the centrality component of the location model.
+
+\textbf{Assumption 6:} The requirement to place ``at least one station in each of the nine
+districts'' is a terminal coverage goal, not a constraint on the first-phase selection.
+\textit{Justification:} The problem asks us to select four to six stations in Phase 1 while
+simultaneously requiring at least one station in each of nine districts. These
+requirements cannot hold together, because nine districts require at least nine stations.
+We resolve the conflict by treating per-district coverage as the goal of the complete
+three-phase rollout (2025--2030), achieved by Phase 3. Phase 1 optimizes over four to six
+sites under the budget alone.
+
+\textbf{Assumption 7:} Each EV generates about \$50 per year in charging revenue, station
+installation is amortized over a ten-year horizon, and a public charger serves roughly 75
+EVs at capacity.
+\textit{Justification:} These values anchor the break-even analysis in Section 5 and come
+from public-charging utilization studies \cite{NREL2017, Funke2019}. The revenue figure is
+a conservative industry average, and the 75-EV-per-charger rule reflects observed
+charger-to-vehicle ratios in comparable cities.
+
+% ======================================================================
+% SECTION 3: TASK 1 — DEMAND ASSESSMENT
+% ======================================================================
+\section{Task 1: Charging Demand Assessment}
+
+\subsection{Data Exploration and Preprocessing}
+
+Before building any model we examine the raw dataset for quality and structure, confirming
+that the data support the assumptions that follow and flagging values that would distort
+the analysis.
+
+\textbf{Missing values.} Every cell of the district indicator matrix and candidate-site
+table is present, so no imputation is needed.
+
+\textbf{Outlier detection.} For each indicator we compute standardized Z-scores and flag any
+district with $|Z|>2.5$. Exactly one observation qualifies: Downtown's EV density
+($Z=+2.52$), a concentration (4.94\%) more than two standard deviations above the mean,
+driven by its small population and large EV count. This is a genuine feature, not a data
+error, and it is why Downtown tops the demand ranking.
+
+\textbf{Correlation analysis.} We compute the pairwise correlation matrix of the six
+indicators and flag any coefficient with magnitude above $0.8$. Five pairs exceed the
+threshold (Figure \ref{fig:correlation}). The strongest is daily traffic versus existing
+chargers per thousand residents ($r=0.92$); daily traffic also correlates with district
+type ($r=0.92$), and population correlates negatively with traffic ($r=-0.83$). These
+correlations reflect the underlying structure of the city and are handled by the
+entropy-weight method, which down-weights redundant information.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\textwidth]{ev_correlation.png}
+\caption{Pairwise correlation matrix of the six demand indicators. Color encodes the Pearson
+coefficient from $-1$ (dark blue) to $+1$ (dark red), with the numeric value printed in each
+cell. Five pairs exceed $|r|>0.8$: daily traffic with existing chargers ($r=0.92$), daily
+traffic with district type ($r=0.92$), population with existing chargers ($r=-0.83$),
+population with traffic ($r=-0.83$), and EV density with district type ($r=0.83$). The
+redundancy among these indicators is the reason the entropy-weight method assigns the
+traffic and type indicators only moderate weight, rather than inflating the demand score.}
+\label{fig:correlation}
+\end{figure}
+
+\textbf{District-type mapping.} The district-type indicator is qualitative, so we convert it
+to a propensity score on a 0--1 scale: commercial and administrative districts generate the
+most daytime and visitor demand and receive the highest score, while emerging residential
+districts receive the least (Table \ref{tab:typescore}). Two districts are interpolated for
+fine gradation: Mall District (0.9, retail--commercial) and Southside (0.5, transitional
+mixed--residential). This matches infrastructure studies showing retail and commercial
+zones generate two to three times the charging events of residential zones
+\cite{NREL2017, Funke2019}.
+
+\begin{table}[H]
+\centering
+\caption{District-Type Propensity Scores}
+\label{tab:typescore}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.50\textwidth}p{0.16\textwidth}@{}}
+\toprule
+District type & Score \\
+\midrule
+Commercial / administrative & 1.0 \\
+Educational / commercial & 0.8 \\
+Mixed commercial--residential & 0.7 \\
+Industrial & 0.6 \\
+Residential & 0.4 \\
+Emerging residential & 0.3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Factors Influencing Charging Demand}
+
+We identify four primary drivers of public charging demand, each of which enters our
+evaluation model as a measurable indicator.
+
+\textbf{Population.} A larger resident base supports more vehicles and more potential EV
+owners, raising baseline charging need.
+
+\textbf{EV density.} Many EVs per resident produce an immediate, concentrated need for
+charging, whereas the same number spread thinly produces lower pressure on any location.
+
+\textbf{Traffic volume.} Daily traffic captures through-flow and visitor activity that
+resident population misses. A busy commercial corridor needs charging for non-residents
+even if few EVs are registered locally, which is why Mall District is a strong demand
+center despite its small population.
+
+\textbf{Existing charger scarcity.} Demand for \emph{new} public charging is highest where
+supply is thinnest, measured as existing chargers per thousand residents.
+
+\textbf{District type.} Commercial, administrative, and educational districts generate
+daytime and visitor demand that residential districts do not, so we map each type to a
+propensity score from 0.3 (emerging residential) to 1.0 (commercial/administrative).
+
+\subsection{Evaluation Indicator System}
+
+We formalize these factors into six indicators for the nine districts. Table
+\ref{tab:indicators} lists the raw values. Direction ``$+$'' means a higher value raises
+demand priority; ``$-$'' means a higher value lowers it.
+
+\begin{table}[H]
+\centering
+\caption{District Demand Indicators (Raw Values)}
+\label{tab:indicators}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.16\textwidth}p{0.09\textwidth}p{0.10\textwidth}p{0.12\textwidth}p{0.10\textwidth}p{0.13\textwidth}p{0.11\textwidth}@{}}
+\toprule
+District & Pop. & EVs & Density & Traffic & Chargers & Type \\
+ & & (2024) & (\%) & (k/day) & /1000 pop & score \\
+\midrule
+Downtown & 8,500 & 420 & 4.94 & 45 & 1.41 & 1.0 \\
+Northside & 18,200 & 310 & 1.70 & 18 & 0.16 & 0.4 \\
+Southside & 22,400 & 280 & 1.25 & 22 & 0.09 & 0.5 \\
+Eastside & 15,600 & 350 & 2.24 & 25 & 0.32 & 0.7 \\
+Westside & 19,800 & 290 & 1.46 & 15 & 0.05 & 0.4 \\
+University & 12,000 & 220 & 1.83 & 30 & 0.50 & 0.8 \\
+Industrial & 5,200 & 110 & 2.12 & 35 & 0.77 & 0.6 \\
+Mall District & 3,100 & 80 & 2.58 & 50 & 2.58 & 0.9 \\
+Riverside & 15,200 & 120 & 0.79 & 10 & 0.00 & 0.3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Entropy-Weight Method}
+
+Assigning equal weight to six indicators would ignore that districts differ sharply on
+some dimensions and barely on others. An indicator on which all districts score similarly
+provides little information for ranking. We use the entropy-weight method to derive
+objective weights from the data \cite{Shannon1948}.
+
+Let $X = [x_{ij}]_{m \times n}$ be the decision matrix with $m = 9$ districts and $n = 6$
+indicators. We first normalize to remove scale differences. For benefit-type indicators
+(direction $+$):
+
+\begin{equation}
+r_{ij} = \frac{x_{ij} - \min_i x_{ij}}{\max_i x_{ij} - \min_i x_{ij}}
+\end{equation}
+
+For cost-type indicators (direction $-$), we use the mirrored formula:
+
+\begin{equation}
+r_{ij} = \frac{\max_i x_{ij} - x_{ij}}{\max_i x_{ij} - \min_i x_{ij}}
+\end{equation}
+
+The normalized matrix $R = [r_{ij}]$ has entries in $[0,1]$ with larger values indicating
+higher demand priority. The entropy of indicator $j$ is
+
+\begin{equation}
+p_{ij} = \frac{r_{ij}}{\sum_{i=1}^m r_{ij}}, \qquad
+e_j = -\frac{1}{\ln m}\sum_{i=1}^m p_{ij}\ln p_{ij}
+\end{equation}
+
+with $p_{ij}\ln p_{ij}=0$ when $p_{ij}=0$. High entropy means districts score similarly on
+that indicator, so it carries little discriminating information. The objective weight is
+
+\begin{equation}
+w_j = \frac{1 - e_j}{\sum_{k=1}^n (1 - e_k)}
+\end{equation}
+
+The weights sum to one and reflect each indicator's ability to separate districts.
+Table \ref{tab:weights} reports the computed weights.
+
+\begin{table}[H]
+\centering
+\caption{Entropy Weights for Demand Indicators}
+\label{tab:weights}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.06\textwidth}p{0.34\textwidth}p{0.10\textwidth}p{0.12\textwidth}p{0.12\textwidth}@{}}
+\toprule
+ID & Indicator & Direction & Entropy & Weight \\
+\midrule
+I1 & Population & $+$ & 0.887 & 0.153 \\
+I2 & EV registrations & $+$ & 0.863 & 0.185 \\
+I3 & EV density & $+$ & 0.846 & 0.209 \\
+I4 & Daily traffic & $+$ & 0.866 & 0.181 \\
+I5 & Chargers per 1000 pop & $-$ & 0.936 & 0.087 \\
+I6 & District type & $+$ & 0.863 & 0.185 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+EV density, EV registrations, daily traffic, and district type receive nearly equal
+weights (0.18--0.21), together accounting for about 76\% of the total, because these four
+factors vary most across districts and thus discriminate best. Charger scarcity receives
+the smallest weight (0.087) because most districts have similarly low charger counts.
+Population carries an intermediate weight, since large residential districts (Southside,
+Westside) have populations that do not translate one-to-one into charging demand.
+
+\subsection{TOPSIS Ranking and Demand Priority Scores}
+
+TOPSIS ranks districts by their geometric distance from an ideal and a negative-ideal
+solution \cite{Hwang1981}. We form the weighted matrix $V = [v_{ij}]$ with
+$v_{ij} = w_j r_{ij}$, and define the ideal $A^+$ and negative-ideal $A^-$ solutions:
+
+\begin{equation}
+A^+ = \{\max_i v_{i1}, \dots, \max_i v_{in}\}, \qquad
+A^- = \{\min_i v_{i1}, \dots, \min_i v_{in}\}
+\end{equation}
+
+For each district $i$, the Euclidean distances to these references are
+
+\begin{equation}
+D_i^+ = \sqrt{\sum_{j=1}^n (v_{ij} - A_j^+)^2}, \qquad
+D_i^- = \sqrt{\sum_{j=1}^n (v_{ij} - A_j^-)^2}
+\end{equation}
+
+The relative closeness to the ideal defines the demand priority score, rescaled to 0--100:
+
+\begin{equation}
+S_i = \frac{D_i^-}{D_i^+ + D_i^-} \times 100
+\end{equation}
+
+Table \ref{tab:scores} reports the scores and rankings.
+
+\begin{table}[H]
+\centering
+\caption{Charging Demand Priority Scores and Rankings}
+\label{tab:scores}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.06\textwidth}p{0.24\textwidth}p{0.13\textwidth}p{0.13\textwidth}p{0.13\textwidth}@{}}
+\toprule
+Rank & District & $D^+$ & $D^-$ & Score \\
+\midrule
+1 & Downtown & 0.122 & 0.375 & 75.45 \\
+2 & Eastside & 0.205 & 0.242 & 54.12 \\
+3 & Mall District & 0.283 & 0.257 & 47.63 \\
+4 & University & 0.233 & 0.210 & 47.43 \\
+5 & Southside & 0.272 & 0.220 & 44.79 \\
+6 & Northside & 0.278 & 0.202 & 42.05 \\
+7 & Westside & 0.294 & 0.201 & 40.57 \\
+8 & Industrial & 0.289 & 0.167 & 36.60 \\
+9 & Riverside & 0.375 & 0.131 & 25.95 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.80\textwidth]{ev_demand_scores.png}
+\caption{Charging demand priority score (0--100) for the nine districts, ranked in descending order. Bar color darkens with higher score. Downtown leads decisively at 75.45, driven by the highest EV density (4.94\%), the largest EV count (420), heavy traffic (45,000/day), and a commercial/administrative type. Eastside ranks second at 54.12. The remaining districts cluster in a narrow band from 47.63 (Mall District) down to 25.95 (Riverside), indicating that a small number of districts concentrate most current demand.}
+\label{fig:scores}
+\end{figure}
+
+Downtown leads by a wide margin (75.45), reflecting its high EV density, large EV count,
+heavy traffic, and commercial character; Eastside follows at 54.12. The middle tier (Mall
+District, University, Southside, Northside, Westside) spans only about seven points, so
+these districts are broadly comparable. Riverside ranks last at 25.95 despite zero public
+chargers, because its low traffic, low EV density, and emerging-residential character mean
+current demand is still small; its scarcity is a \emph{future} opportunity rather than a
+present bottleneck.
+
+\subsection{Non-Technical Summary for the Mayor}
+
+In plain terms, Downtown needs public charging most, followed by Eastside. The remaining
+districts (Mall District, University, Southside, Northside, Westside) have similar,
+moderate needs, while Riverside's shortage is a future problem rather than a current one.
+
+\subsection{Citywide EV Registration Forecast}
+
+To plan expansion we must forecast how many EVs Springfield will have. The city holds only
+six years of registrations, so a regression on a time index is unreliable: the series is
+non-stationary, and its residuals are serially correlated. We therefore model the series as
+a stochastic process with a classical ARIMA (autoregressive integrated moving-average)
+model \cite{Box2015, Hyndman2018}, and we keep the logistic S-curve as a comparison
+baseline.
+
+We first choose the integration order $d$ with the Augmented Dickey--Fuller (ADF) test
+\cite{Dickey1979}. On this short sample the test has little power, but it consistently
+fails to reject a unit root in the level and in the first difference (both $p$-values near
+$1.0$). We therefore treat the series as integrated of order two and set $d=2$. Let $C_t$
+be citywide registrations in year $t$ and $\nabla^{2} C_t = C_t - 2C_{t-1} + C_{t-2}$ its
+second difference. The general ARIMA$(p,d,q)$ model writes
+
+\begin{equation}
+\nabla^{d} C_t = \phi_1 \nabla^{d} C_{t-1} + \cdots + \phi_p \nabla^{d} C_{t-p}
+              + \varepsilon_t + \theta_1 \varepsilon_{t-1} + \cdots + \theta_q \varepsilon_{t-q},
+\end{equation}
+
+where $\varepsilon_t$ is white noise. We select $p,q\in\{0,1\}$ by minimizing the Akaike
+information criterion (AIC), which trades fit against model size. The chosen model is
+ARIMA$(1,2,0)$ with AIC $=52.07$, coefficient $\hat\phi_1 = 0.935$, and residual standard
+deviation $79$ vehicles. Figure \ref{fig:acfpacf} shows the ACF and PACF of the
+second-differenced series used for this choice.
+
+A pure ARIMA has no saturation ceiling and would grow without bound on a long horizon. We
+therefore impose the hard business upper bound of $25{,}000$ vehicles from Assumption 2, so
+the forecast cannot exceed the long-run ceiling the city's fleet size implies. Figure
+\ref{fig:forecast} overlays the historical data, the ARIMA forecast with its 95\%
+interval, and the logistic baseline, and Table \ref{tab:forecast} lists the point
+forecasts.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.80\textwidth]{ev_forecast_compare.png}
+\caption{Citywide EV forecast, historical and projected. Black points are the 2019--2024
+registrations. The red solid curve is the logistic S-curve baseline and the blue solid
+curve is the ARIMA forecast, with the blue shaded band its 95\% confidence interval and the
+gray dotted line the 25,000-vehicle cap. The two methods agree through 2026 and diverge
+afterward: the logistic reaches 14,751 by 2030, while the ARIMA reaches 11,915.}
+\label{fig:forecast}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\textwidth]{ev_arima_acf_pacf.png}
+\caption{Autocorrelation (ACF, left, blue) and partial autocorrelation (PACF, right,
+orange) of the second-differenced registrations, plotted at lags 0 and 1. Both lag-1 values
+fall within the 95\% significance bounds for this short series, confirming that a low order
+$p=1$, $q=0$ is adequate and that the ARIMA$(1,2,0)$ residuals are approximately white
+noise.}
+\label{fig:acfpacf}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{EV Registration Forecast: ARIMA vs.\ Logistic Baseline}
+\label{tab:forecast}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.28\textwidth}p{0.14\textwidth}p{0.14\textwidth}p{0.14\textwidth}p{0.14\textwidth}@{}}
+\toprule
+Model & 2025 & 2026 & 2027 & 2030 \\
+\midrule
+Logistic (baseline) & 3,228 & 4,734 & 6,725 & 14,751 \\
+ARIMA (primary) & 3,242 & 4,548 & 6,083 & 11,915 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The two forecasts are close through 2026 and separate afterward. The logistic, forced to
+follow an S-shape, inflects sharply near 2029 and reaches 14,751 by 2030. The ARIMA,
+constrained only by the 25,000 cap, follows the recent trend and reaches 11,915. Both
+forecasts cross the Phase-2 break-even threshold (6,075 EVs) in 2027 and the Phase-3
+threshold (7,575 EVs) in 2028, so the phase timing is insensitive to the choice of method.
+We adopt the ARIMA forecast as the primary input to the break-even and multi-period models
+in Section 5, because its residuals satisfy the assumptions of statistical inference; the
+logistic is retained as a more optimistic upper scenario.
+
+% ======================================================================
+% SECTION 4: TASK 2 — LOCATION OPTIMIZATION
+% ======================================================================
+\section{Task 2: Charging Station Location Optimization}
+
+\subsection{Site Attributes and Lexicographic Objectives}
+
+A good location serves high demand, sits near other districts, and does not cost too much.
+We therefore attach to each candidate site $s$ three quantities drawn directly from the
+data in Tables \ref{tab:scores} and \ref{tab:degrees}.
+
+\textbf{Demand coverage $D_s$.} The demand-priority score of the site's district, rescaled
+to $[0,1]$ by dividing the 0--100 score by 100. A site in Downtown carries $D_s = 0.7545$;
+a site in Riverside carries $D_s = 0.2595$.
+
+\textbf{Degree centrality $C_s$.} The number of neighbors of the site's district in the
+five-mile graph, normalized by the maximum degree of 4:
+
+\begin{equation}
+C_s = \frac{\deg(\text{district}(s))}{\max_j \deg(j)} = \frac{\deg_s}{4}.
+\end{equation}
+
+Downtown and University, at degree 4, receive $C_s = 1.0$; Industrial and Riverside, at
+degree 1, receive $C_s = 0.25$. Degree centrality counts how many neighboring districts a
+single station can serve through spillover, and it is the natural hub measure from the
+graph constructed in Section 4.5.
+
+\textbf{Installation cost $c_s$.} The one-time installation cost in units of \$10{,}000.
+Cost is the scarce resource under the budget, so it enters the objective as a quantity to
+minimize rather than as a scored criterion.
+
+Two further attributes act as hard feasibility filters, not scored criteria. A site must be
+developable and must be able to absorb the demand it is meant to serve:
+
+\begin{equation}
+L_s \ge 3 \qquad \text{(land availability at least 3 of 5)},
+\end{equation}
+
+\begin{equation}
+M_s \ge 4 \qquad \text{(capacity of at least 4 chargers)}.
+\end{equation}
+
+The land filter excludes S9 (Mall District), whose land score is 2, from the Phase-1
+candidate set; every other site passes. The capacity filter is non-binding, because all ten
+sites host at least four chargers. Table \ref{tab:sites} lists the site-level data and
+Figure \ref{fig:utility} shows the demand and centrality values.
+
+\begin{table}[H]
+\centering
+\caption{Candidate Site Data: Demand, Centrality, Cost, and Feasibility}
+\label{tab:sites}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.05\textwidth}p{0.20\textwidth}p{0.09\textwidth}p{0.09\textwidth}p{0.15\textwidth}p{0.07\textwidth}p{0.07\textwidth}@{}}
+\toprule
+Site & District & $D_s$ & $C_s$ & Install (\$) & Land & Max \\
+\midrule
+S1 & Downtown & 0.7545 & 1.00 & 450,000 & 3 & 10 \\
+S2 & Downtown & 0.7545 & 1.00 & 380,000 & 4 & 8 \\
+S3 & Northside & 0.4205 & 0.50 & 300,000 & 5 & 6 \\
+S4 & Southside & 0.4479 & 0.50 & 280,000 & 4 & 6 \\
+S5 & Eastside & 0.5412 & 0.75 & 320,000 & 5 & 6 \\
+S6 & Westside & 0.4057 & 0.50 & 250,000 & 5 & 4 \\
+S7 & University & 0.4743 & 1.00 & 350,000 & 3 & 8 \\
+S8 & Industrial & 0.3660 & 0.25 & 400,000 & 4 & 10 \\
+S9 & Mall District & 0.4763 & 0.75 & 500,000 & 2 & 12 \\
+S10 & Riverside & 0.2595 & 0.25 & 350,000 & 5 & 6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.80\textwidth]{ev_location_utility.png}
+\caption{Demand coverage $D_s$ (left bar) and degree centrality $C_s$ (right bar) for each of the ten candidate sites. Orange bars mark the six sites selected in the Phase-1 optimum; blue bars mark the unselected sites. Downtown's two sites carry the highest demand (0.7545) and full centrality (1.0), which is why both are selected. S9 (Mall District) shows high demand but is excluded by the land filter (land score 2). S10 (Riverside) shows the lowest demand (0.2595), so both remain unselected.}
+\label{fig:utility}
+\end{figure}
+
+\subsection{Lexicographic Integer Programming Formulation}
+
+The three objectives, demand, centrality, and cost, are not combined by an arbitrary
+weighted sum. Instead we solve them in a strict priority order: demand coverage is the
+primary goal, centrality breaks ties among equally good demand solutions, and cost breaks
+ties among solutions equal on both. Let $x_s \in \{0,1\}$ indicate whether site $s$ is
+selected. We write the optimization as a lexicographic maximum of three ordered terms:
+
+\begin{equation}
+\operatorname*{lex\,max}_{x} \;\Big(\;\sum_{s=1}^{10} D_s x_s,\quad \sum_{s=1}^{10} C_s x_s,\quad -\sum_{s=1}^{10} c_s x_s\;\Big)
+\end{equation}
+
+subject to
+
+\begin{equation}
+\sum_{s=1}^{10} c_s x_s \le 200 \qquad \text{(budget: \$2,000,000)}
+\end{equation}
+
+\begin{equation}
+4 \le \sum_{s=1}^{10} x_s \le 6 \qquad \text{(station count)}
+\end{equation}
+
+\begin{equation}
+L_s \ge 3 x_s, \qquad M_s \ge 4 x_s \qquad \text{(land and capacity filters)}
+\end{equation}
+
+\begin{equation}
+\sum_{s\,:\,\operatorname{dist}(s,j)\,\le\,5} x_s \;\ge\; 1, \qquad j=1,\dots,9 \qquad \text{(coverage)}
+\end{equation}
+
+\begin{equation}
+x_s \in \{0,1\}, \qquad s=1,\dots,10
+\end{equation}
+
+Lexicographic maximization works as follows. Among all feasible selections, keep only
+those maximizing $\sum D_s x_s$ (Level 1); among those survivors, those maximizing
+$\sum C_s x_s$ (Level 2); among those, those minimizing $\sum c_s x_s$ (Level 3). This
+yields a single answer with no subjective trade-off parameter.
+
+The coverage constraint uses the distance matrix directly: every district must lie within
+five miles of at least one selected station. This is weaker than a station in every
+district, which is impossible with at most six sites, yet it guarantees no district lacks
+a nearby charger. Because Riverside's only neighbor is Westside, the coverage constraint
+forces Westside into the Phase-1 set whenever Riverside is not selected.
+
+With ten candidate sites the feasible set has at most
+$\binom{10}{4}+\binom{10}{5}+\binom{10}{6}=672$ combinations, so we enumerate every
+feasible combination and compare their lexicographic tuples, guaranteeing global
+optimality.
+
+\subsection{Optimal Phase-1 Selection}
+
+The enumeration returns the optimum in Table \ref{tab:phase1}.
+
+\begin{table}[H]
+\centering
+\caption{Optimal Phase-1 Station Selection}
+\label{tab:phase1}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.07\textwidth}p{0.22\textwidth}p{0.13\textwidth}p{0.13\textwidth}p{0.18\textwidth}@{}}
+\toprule
+Site & District & Demand $D_s$ & Centrality $C_s$ & Install Cost \\
+\midrule
+S1 & Downtown & 0.7545 & 1.00 & \$450,000 \\
+S2 & Downtown & 0.7545 & 1.00 & \$380,000 \\
+S3 & Northside & 0.4205 & 0.50 & \$300,000 \\
+S4 & Southside & 0.4479 & 0.50 & \$280,000 \\
+S5 & Eastside & 0.5412 & 0.75 & \$320,000 \\
+S6 & Westside & 0.4057 & 0.50 & \$250,000 \\
+\midrule
+\multicolumn{2}{l}{\textbf{Total}} & 3.3243 & 4.25 & \$1,980,000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The lexicographic optimum selects six stations across five districts (Downtown hosts two),
+spending \$1.98 million of the \$2.0 million budget. It maximizes demand coverage first
+($\sum D_s = 3.3243$), then centrality ($\sum C_s = 4.25$) among demand-maximal sets. The
+selection spans the five highest-demand districts. Downtown receives two stations because
+its demand priority (75.45) is far above the next district, and its second site S2 is
+cheaper than S1 at equal demand and centrality. The model does not select University, Mall
+District, Industrial, or Riverside in Phase 1: Mall District is excluded by the land
+filter, and the rest defer to later phases because their lower current demand cannot
+justify the budget.
+
+\subsection{Station Connectivity Graph Analysis}
+
+We treat the nine districts as nodes of an undirected graph, adding an edge between two
+districts whenever their distance is at most five miles. Table 3 supplies the distances.
+Figure \ref{fig:graph} renders the graph.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.68\textwidth]{ev_graph.png}
+\caption{District connectivity graph. Nodes are districts; an edge joins two districts within five miles, with the distance in miles labeled on each edge. Node color and size encode degree (number of neighbors). The graph has a single connected component spanning all nine districts. Downtown and University tie for the highest degree (4), marking them as the most central hubs; Industrial and Riverside have degree 1 and lie at the network periphery.}
+\label{fig:graph}
+\end{figure}
+
+Table \ref{tab:degrees} lists the degree of each district.
+
+\begin{table}[H]
+\centering
+\caption{District Node Degrees}
+\label{tab:degrees}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.24\textwidth}p{0.12\textwidth}p{0.30\textwidth}@{}}
+\toprule
+District & Degree & Neighbors ($\leq$ 5 mi) \\
+\midrule
+Downtown & 4 & Eastside, University, Mall, Southside \\
+University & 4 & Downtown, Northside, Eastside, Mall \\
+Eastside & 3 & Downtown, Mall, University \\
+Mall District & 3 & Downtown, Eastside, University \\
+Northside & 2 & Westside, University \\
+Southside & 2 & Downtown, Industrial \\
+Westside & 2 & Northside, Riverside \\
+Industrial & 1 & Southside \\
+Riverside & 1 & Westside \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two findings emerge. First, the graph has exactly \textbf{one connected component}: every
+district is reachable from every other through a chain of five-mile hops, so the network
+is not fragmented and a central station can serve spillover demand from several neighbors.
+
+Second, the highest degree is 4, held jointly by \textbf{Downtown and University}. A
+high-degree node is a natural hub with the most direct links, so a station there is
+accessible from the largest number of neighbors. Downtown's hub status reinforces its
+Phase-1 selection, while University's equally high degree is informative precisely because
+it was \emph{not} selected in Phase 1 despite its centrality.
+
+We now answer the problem's question directly: if we were required to build in the
+highest-degree district, would the optimum change? For Downtown, no, since it is already
+selected. For University, yes: forcing S7 into the set displaces Downtown's secondary site
+S1 to stay under budget, lowering demand coverage from 3.3243 to 3.0442, a loss of 8.43\%.
+We formalize this comparison, together with the parallel Riverside case, in Table
+\ref{tab:whatif}. The comparison shows centrality alone does not override demand: a hub
+matters only when it also has current charging need.
+
+% ======================================================================
+% SECTION 5: TASK 3 — EXPANSION PLANNING AND SENSITIVITY
+% ======================================================================
+\section{Task 3: Future Expansion Planning}
+
+\subsection{Break-Even Analysis for Phase Timing}
+
+The Phase-1 selection answers where to build first. To decide \emph{when} to build the next
+stations we need a data-driven trigger rather than an arbitrary EV threshold. We derive the
+trigger from a break-even calculation for each site.
+
+A station breaks even when the revenue it collects from the EVs it serves covers its
+annualized cost. Let $c_s$ be the installation cost and $m_s$ the annual maintenance cost
+of site $s$. Amortizing installation over a ten-year horizon at $\alpha=0.1$, and assuming
+each EV contributes $R=\$50$ per year in charging revenue, the break-even number of EVs is
+
+\begin{equation}
+\mathrm{BE}_s = \frac{\alpha\, c_s + m_s}{R} = \frac{0.1\, c_s + m_s}{50}.
+\end{equation}
+
+Table \ref{tab:breakeven} reports $\mathrm{BE}_s$ for every site. Low-cost, low-maintenance
+sites break even at a few hundred EVs; the most expensive site, S9, needs 1,600.
+
+\begin{table}[H]
+\centering
+\caption{Per-Site Break-Even EV Count}
+\label{tab:breakeven}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.07\textwidth}p{0.24\textwidth}p{0.16\textwidth}p{0.16\textwidth}p{0.14\textwidth}@{}}
+\toprule
+Site & District & Install (\$) & Maint. (\$/yr) & BE (EVs) \\
+\midrule
+S1 & Downtown & 450,000 & 25,000 & 1,400 \\
+S2 & Downtown & 380,000 & 20,000 & 1,160 \\
+S3 & Northside & 300,000 & 18,000 & 960 \\
+S4 & Southside & 280,000 & 15,000 & 860 \\
+S5 & Eastside & 320,000 & 18,000 & 1,000 \\
+S6 & Westside & 250,000 & 12,000 & 740 \\
+S7 & University & 350,000 & 20,000 & 1,100 \\
+S8 & Industrial & 400,000 & 22,000 & 1,240 \\
+S9 & Mall District & 500,000 & 30,000 & 1,600 \\
+S10 & Riverside & 350,000 & 18,000 & 1,060 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A single site's break-even is a local condition. To time the phases citywide we use an
+empirical utilization rule: a public charger serves roughly 75 EVs in comparable cities
+\cite{NREL2017}. A phase is justified once the chargers already deployed are serving 75 EVs
+each on average. The city holds 41 existing chargers plus 40 Phase-1 chargers, a total of
+81, so Phase 2 should begin when citywide EVs reach
+
+\begin{equation}
+(41 + 40) \times 75 = 6{,}075 \text{ EVs}.
+\end{equation}
+
+Phase 2 adds 20 chargers (S7 and S9), raising the system to 101 chargers, so Phase 3 should
+begin at
+
+\begin{equation}
+(41 + 40 + 20) \times 75 = 7{,}575 \text{ EVs}.
+\end{equation}
+
+The forecast crosses 6,075 EVs in 2027 and 7,575 EVs in 2028 (Figure
+\ref{fig:breakeven}). These crossing years set the phase timing.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.80\textwidth]{ev_breakeven.png}
+\caption{Break-even phase triggers against the EV forecast. The red curve is the ARIMA
+forecast, with black points marking the 2019--2024 historical registrations. The orange
+dashed line is the Phase-2 trigger (6,075 EVs), crossed in 2027, and the green dashed line
+is the Phase-3 trigger (7,575 EVs), crossed in 2028. The forecast passes 6,075 EVs in 2027
+and 7,575 EVs in 2028, which sets the timing of the second and third build phases.}
+\label{fig:breakeven}
+\end{figure}
+
+\subsection{Multi-Period Integer Program}
+
+We now replace the ad hoc phase assignment with a single optimization over all three
+phases. Let $x_{s,t}\in\{0,1\}$ indicate whether site $s$ is built in phase
+$t\in\{1,2,3\}$. Stations built earlier serve demand sooner, so we discount phase-$t$
+demand by $\delta^{t}$ with $\delta=0.95$:
+
+\begin{equation}
+\max \sum_{t=1}^{3}\sum_{s=1}^{10} \delta^{t}\, D_s\, x_{s,t}
+\end{equation}
+
+subject to
+
+\begin{equation}
+\sum_{s=1}^{10} c_s\, x_{s,t} \le B_t, \qquad (B_1, B_2, B_3) = (200, 90, 90) \times \$10{,}000
+\end{equation}
+
+\begin{equation}
+4 \le \sum_{s=1}^{10} x_{s,1} \le 6, \qquad 2 \le \sum_{s=1}^{10} x_{s,t} \le 4 \quad (t = 2,3)
+\end{equation}
+
+\begin{equation}
+\sum_{t=1}^{3} x_{s,t} \le 1 \;\; \forall s, \qquad \sum_{t=1}^{3}\sum_{s=1}^{10} x_{s,t} \le 10
+\end{equation}
+
+\begin{equation}
+\sum_{t=1}^{3}\sum_{s\,:\,\operatorname{dist}(s,j)\,\le\,5} x_{s,t} \;\ge\; 1 \;\; \forall j
+\end{equation}
+
+\begin{equation}
+x_{s,t} \in \{0,1\}.
+\end{equation}
+
+The first constraint caps spending in each phase. The second bounds the number of stations
+per phase, with Phase 1 inheriting the four-to-six range from Task 2. The third ensures
+each site is built at most once and that at most ten sites are built in total. The fourth
+is the coverage constraint: by the end of Phase 3 every district lies within five miles of
+a built station. Enumerating the $4^{10}$ phase assignments yields the optimum in Table
+\ref{tab:multiperiod}.
+
+\begin{table}[H]
+\centering
+\caption{Optimal Multi-Period Deployment}
+\label{tab:multiperiod}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.12\textwidth}p{0.30\textwidth}p{0.12\textwidth}p{0.16\textwidth}p{0.16\textwidth}@{}}
+\toprule
+Phase & Sites & Stations & Cost & $\delta^t\sum D_s$ \\
+\midrule
+1 ($t{=}1$) & S1, S2, S3, S4, S5, S6 & 6 & \$1,980,000 & 3.1581 \\
+2 ($t{=}2$) & S7, S9 & 2 & \$850,000 & 0.8580 \\
+3 ($t{=}3$) & S8, S10 & 2 & \$750,000 & 0.5363 \\
+\midrule
+\multicolumn{2}{l}{\textbf{Total}} & 10 & \$3,580,000 & 4.5524 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Three-Phase Deployment Roadmap}
+
+The multi-period optimum, combined with the break-even crossing years, produces the roadmap
+in Figure \ref{fig:roadmap}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.80\textwidth]{ev_roadmap.png}
+\caption{Three-phase deployment roadmap, 2025--2030. The horizontal bar accumulates stations over time. Phase 1 (orange) deploys six stations across the five highest-demand districts. Phase 2 (green) adds two stations in University and Mall District. Phase 3 (blue) completes citywide coverage with stations in Industrial and Riverside. The plan grows from 6 to 8 to 10 stations, covering all nine districts by 2030.}
+\label{fig:roadmap}
+\end{figure}
+
+\textbf{Phase 1 (2025--2026): six stations.} Build S1 and S2 in Downtown, plus S3
+(Northside), S4 (Southside), S5 (Eastside), and S6 (Westside), serving the five
+highest-demand districts at \$1.98 million and matching the optimization of Section 4.
+
+\textbf{Phase 2 (2027--2028): two additional stations.} Add S7 (University) and S9 (Mall
+District), whose districts carry the highest remaining demand (0.4743 and 0.4763); the
+break-even rule triggers Phase 2 when citywide EVs cross 6,075, in 2027. University's high
+degree makes it an efficient second-wave hub.
+
+\textbf{Phase 3 (2029--2030): full coverage.} Add S8 (Industrial) and S10 (Riverside) when
+citywide EVs cross 7,575 (2028). By 2030 the forecast reaches about 11,915 EVs, so even
+low-current-demand districts need local access. Riverside's zero-charger gap is closed
+here, completing coverage of all nine districts.
+
+The roadmap is now demand-driven at every step: the order of districts follows the demand
+ranking through the discounted objective, and the phase timing follows the break-even
+crossing years.
+
+\subsection{Sensitivity Analysis}
+
+We test how the plan responds to four perturbations: EV growth error, installation-cost
+change, budget reduction, and forced station requirements.
+
+\textbf{EV growth $\pm$20\%.} We scale the forecast by 0.8 and 1.2 and re-examine the
+phase timing (Figure \ref{fig:sensitivity}, left). A 20\% error shifts the break-even
+crossing years by at most one year in either direction: the Phase-2 trigger (6,075 EVs)
+moves between 2027 and 2028, and the Phase-3 trigger (7,575 EVs) between 2028 and 2029. The
+\emph{order} of district build-out is unchanged, because the demand ranking depends on
+relative differences that are stable under uniform scaling. The plan is robust in structure
+and only mildly sensitive in timing.
+
+\textbf{Installation cost $\pm$15\%.} We re-solve the lexicographic program with costs
+scaled by 0.85 and 1.15 (Table \ref{tab:costsens}). At $-$15\% the lower costs admit a
+higher-demand sixth station: the model swaps S3 (Northside, $D=0.4205$) for S7 (University,
+$D=0.4743$), raising demand coverage from 3.3243 to 3.3782. At $+$15\% the budget binds and
+the model drops S3, selecting five stations with coverage 2.9038. The coverage constraint
+is decisive here: the model keeps S6 (Westside) rather than a higher-demand district
+because Westside is Riverside's only neighbor.
+
+\begin{table}[H]
+\centering
+\caption{Optimal Selection Under Installation-Cost Change}
+\label{tab:costsens}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.12\textwidth}p{0.40\textwidth}p{0.12\textwidth}p{0.15\textwidth}p{0.14\textwidth}@{}}
+\toprule
+Cost & Selected Sites & Stations & Demand & Cost \\
+\midrule
+$-15\%$ & S1, S2, S4, S5, S6, S7 & 6 & 3.3782 & \$1,725,500 \\
+Base & S1, S2, S3, S4, S5, S6 & 6 & 3.3243 & \$1,980,000 \\
+$+15\%$ & S1, S2, S4, S5, S6 & 5 & 2.9038 & \$1,932,000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Budget reduction.} We re-solve under successively tighter budgets (Table
+\ref{tab:budget}). At \$2.0M the model selects six stations, five at \$1.8M and \$1.6M, and
+four at \$1.4M. The core of Downtown, Eastside, and Westside persists across every budget,
+confirming these are the highest-leverage locations; at \$1.6M the model again favors
+University (S7) over Northside (S3).
+
+\begin{table}[H]
+\centering
+\caption{Optimal Selection Under Budget Reduction}
+\label{tab:budget}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.18\textwidth}p{0.10\textwidth}p{0.40\textwidth}p{0.14\textwidth}@{}}
+\toprule
+Budget & Stations & Selected Sites & Demand \\
+\midrule
+\$2,000,000 & 6 & S1, S2, S3, S4, S5, S6 & 3.3243 \\
+\$1,800,000 & 5 & S1, S2, S4, S5, S6 & 2.9038 \\
+\$1,600,000 & 5 & S2, S4, S5, S6, S7 & 2.6237 \\
+\$1,400,000 & 4 & S1, S2, S4, S6 & 2.3626 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Forced-station scenarios.} We force the model to include a specific site and
+re-solve (Table \ref{tab:whatif}). Forcing University's S7 displaces Downtown's secondary
+site S1 and lowers coverage by 8.43\%; forcing Riverside's S10, the most peripheral
+district, displaces two higher-demand sites and lowers coverage by 12.82\%. These losses
+quantify the opportunity cost of departing from the demand-optimal selection.
+
+\begin{table}[H]
+\centering
+\caption{What-If Analysis Under Forced Station Requirements}
+\label{tab:whatif}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.28\textwidth}p{0.34\textwidth}p{0.14\textwidth}p{0.14\textwidth}@{}}
+\toprule
+Constraint & Selected Sites & Demand & Loss \\
+\midrule
+None (optimal) & S1, S2, S3, S4, S5, S6 & 3.3243 & --- \\
+Must include University & S2, S3, S4, S5, S6, S7 & 3.0442 & $-8.43\%$ \\
+Must include Riverside & S2, S3, S4, S5, S7, S10 & 2.8980 & $-12.82\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.84\textwidth]{ev_sensitivity.png}
+\caption{Sensitivity of the deployment plan. Left: EV growth prediction $\pm$20\% produces a forecast band (green/blue dashed) around the base curve (red); the band's width grows with time but the shape is preserved. Right: optimal demand coverage under installation-cost changes of $-15\%$, base, and $+15\%$; each bar is annotated with the number of stations selected. Coverage rises slightly at $-15\%$ as the model upgrades to a higher-demand sixth station, and drops at $+15\%$ as it sheds the marginal station to stay under budget.}
+\label{fig:sensitivity}
+\end{figure}
+
+% ======================================================================
+% SECTION 6: MODEL EVALUATION
+% ======================================================================
+\section{Model Evaluation}
+
+\subsection{Strengths}
+
+\begin{enumerate}
+    \item \textbf{Objective indicator weighting.} The entropy-weight method derives
+    indicator importance from the data rather than expert judgment, making the demand
+    ranking reproducible and free of subjective bias.
+    \item \textbf{Provably optimal location selection.} Because the candidate set is small,
+    both the Phase-1 and multi-period programs are solved by complete enumeration. The
+    reported selections are globally optimal, not heuristic guesses.
+    \item \textbf{No arbitrary trade-off weights.} The lexicographic ordering replaces the
+    weighted utility sum, so the site selection depends on no subjective relative weight
+    between demand, centrality, and cost. Each objective enters only in a strict, defensible
+    priority order.
+    \item \textbf{Data-driven phase timing.} The break-even rule ties each build phase to a
+    computed utilization threshold rather than an arbitrary EV number, and the multi-period
+    program optimizes all three phases jointly.
+    \item \textbf{Computational efficiency.} The entire pipeline executes in a fraction of
+    a second, allowing interactive what-if analysis by city planners.
+\end{enumerate}
+
+\subsection{Limitations and Improvement Schemes}
+
+\begin{enumerate}
+    \item \textbf{Short sample and imposed ceiling.} The ARIMA forecast is fit on only six
+    annual observations, so the ADF test has little power and the chosen order is sensitive
+    to the small sample. The 25,000 ceiling is a business judgment imposed after fitting,
+    not a fitted parameter. Testing a range of ceilings (15,000--35,000) and orders would
+    quantify how these choices shift the forecast; over 2025--2027 the forecast stays below
+    both the ceiling and the logistic alternative, so the near-term roadmap timing is
+    stable.
+    \item \textbf{Qualitative district-type mapping.} The district-type propensity is a
+    judgment-based 0--1 scale, though it is justified by the infrastructure literature cited
+    in Section 3. It could be replaced with measured proxies such as employment density or
+    point-of-interest counts.
+    \item \textbf{Enumeration does not scale.} The multi-period program enumerates all
+    $4^{10}$ phase assignments. This is exact for ten sites but would not scale to a city
+    with many more candidates or phases; a branch-and-bound or column-generation method
+    would be needed for larger instances.
+    \item \textbf{No queuing or utilization modeling.} We do not model waiting times,
+    charger utilization rates, or station saturation. A queuing-based extension would
+    refine capacity decisions where demand is densest.
+\end{enumerate}
+
+% ======================================================================
+% SECTION 7: CONCLUSIONS
+% ======================================================================
+\section{Conclusions}
+
+We developed a quantitative framework for deploying Springfield's public EV charging
+network. Our main contributions are:
+
+\begin{enumerate}
+    \item \textbf{A demand assessment model} that scores nine districts on six indicators
+    using entropy weights and TOPSIS. Downtown ranks first (75.45) and Riverside last
+    (25.95), with a clear, explainable ranking in between.
+    \item \textbf{A lexicographic location model} that selects six Phase-1 stations
+    (S1--S6) across five districts at \$1.98 million, provably maximizing demand coverage
+    with centrality and cost as tie-breakers.
+    \item \textbf{A connectivity and coverage analysis} showing the district network is
+    fully connected, with Downtown and University as the highest-degree hubs, and
+    demonstrating that forcing a University station would reduce demand coverage by
+    8.43\%.
+    \item \textbf{An ARIMA EV forecast} projecting 3,242 vehicles in 2025, 6,083 in 2027,
+    and 11,915 in 2030, driving a demand-ordered roadmap.
+    \item \textbf{A phased deployment plan} solved by a discounted multi-period integer
+    program, growing from 6 to 8 to 10 stations, with each phase timed by a break-even
+    threshold, achieving full nine-district coverage by 2030.
+    \item \textbf{A data-exploration and break-even methodology} that screens the raw data
+    for missing values, outliers, and collinearity, and derives phase triggers from station
+    economics rather than arbitrary thresholds.
+    \item \textbf{A robustness analysis} showing the plan's structure is stable under
+    $\pm$20\% growth error and budget cuts, with only the marginal station at risk when
+    costs rise.
+\end{enumerate}
+
+\newpage
+
+% ======================================================================
+% LETTER TO THE MAYOR
+% ======================================================================
+\section*{Letter to the Mayor and City Council}
+
+\vspace{4pt}
+\hrule
+\vspace{6pt}
+
+\begin{flushright}
+Mathematical Modeling Team \#10000 \\
+Data Analytics Consultants to GreenCharge \\
+August 2026 \\
+\end{flushright}
+
+\vspace{2pt}
+
+\textbf{To:} The Mayor and City Council of Springfield
+
+\textbf{From:} GreenCharge Data Analytics Team
+
+\textbf{Subject:} A Plan for Springfield's Public EV Charging Network
+
+\vspace{6pt}
+
+We were asked three questions: where do drivers need charging most, where should the
+first stations go, and how should the network grow. Here are our answers.
+
+\textbf{What we found.} Demand is concentrated. Downtown needs charging most: it has the
+most electric cars (420), the densest concentration, the busiest streets, and the most
+businesses. Eastside is a clear second. Mall District, University, Southside, Northside,
+and Westside have similar, moderate needs. Riverside is the special case: 120 electric
+cars and no public charger, but light traffic today, so its shortage is a future problem
+rather than a current one. Our forecast shows registrations reaching about 6,100 by 2027
+and 11,900 by 2030, which is why we plan now instead of reacting later.
+
+\textbf{What we recommend.} Build in three steps. First, in 2025--2026, build six
+stations: two in Downtown and one each in Northside, Southside, Eastside, and Westside.
+This costs \$1.98 million and serves the five districts where drivers are already
+waiting; we checked every allowable combination of four to six sites under the budget,
+and this set serves the most demand. Second, in 2027--2028, add two stations in Mall
+District and University, timed to a break-even threshold our forecast crosses in 2027.
+Third, in 2029--2030, add stations in Industrial and Riverside, so every district has a
+charger and Riverside's gap is closed as its residents begin buying electric cars.
+
+\textbf{Why this is worth doing.} It puts chargers where they are used, so the city does
+not pay for empty stations. It is robust: if our growth forecast is off by 20\%, the
+timing shifts about a year but the order holds; if costs rise 15\%, we build five stations
+instead of six in the first wave. And it is staged, spreading the cost over five years
+while matching investment to growing demand.
+
+\textbf{One thing we would do first.} Close Riverside's zero-charger gap sooner. A driver
+with no charger in their district will not buy an electric car. One station there removes
+the single clearest barrier to adoption for an entire district, and we recommend the
+Council consider advancing it into the first phase.
+
+We are happy to walk through the numbers behind each recommendation.
+
+\vspace{6pt}
+
+Respectfully submitted,
+
+GreenCharge Data Analytics Team
+
+\newpage
+
+% ======================================================================
+% REFERENCES
+% ======================================================================
+\begin{thebibliography}{99}
+
+\bibitem{Bass1969}
+F. M. Bass,
+``A new product growth for model consumer durables,''
+\emph{Management Science}, vol.~15, no.~5, pp.~215--227, 1969.
+
+\bibitem{Rogers2003}
+E. M. Rogers,
+\emph{Diffusion of Innovations}, 5th ed.
+New York: Free Press, 2003.
+
+\bibitem{Box2015}
+G. E. P. Box, G. M. Jenkins, G. C. Reinsel, and G. M. Ljung,
+\emph{Time Series Analysis: Forecasting and Control}, 5th ed.
+Hoboken, NJ: Wiley, 2015.
+
+\bibitem{Hyndman2018}
+R. J. Hyndman and G. Athanasopoulos,
+\emph{Forecasting: Principles and Practice}, 2nd ed.
+Melbourne: OTexts, 2018.
+
+\bibitem{Dickey1979}
+D. A. Dickey and W. A. Fuller,
+``Distribution of the estimators for autoregressive time series with a unit root,''
+\emph{Journal of the American Statistical Association}, vol.~74, no.~366, pp.~427--431, 1979.
+
+\bibitem{Shannon1948}
+C. E. Shannon,
+``A mathematical theory of communication,''
+\emph{Bell System Technical Journal}, vol.~27, pp.~379--423, 1948.
+
+\bibitem{Hwang1981}
+C. L. Hwang and K. Yoon,
+\emph{Multiple Attribute Decision Making: Methods and Applications}.
+Berlin: Springer-Verlag, 1981.
+
+\bibitem{DOE-AFDC}
+U.S. Department of Energy,
+``Alternative Fuels Data Center: Electric vehicle charging station locations,''
+\emph{DOE AFDC}, 2024.
+
+\bibitem{NREL2017}
+E. Wood, C. Rames, M. Muratori, S. Raghavan, and M. Melaina,
+``National plug-in electric vehicle infrastructure analysis,''
+\emph{National Renewable Energy Laboratory}, Tech. Rep. NREL/TP-5400-69031, 2017.
+
+\bibitem{IEA2024}
+International Energy Agency,
+``Global EV Outlook 2024,''
+\emph{IEA}, Paris, 2024.
+
+\bibitem{Daskin1995}
+M. S. Daskin,
+\emph{Network and Discrete Location: Models, Algorithms, and Applications}.
+New York: Wiley, 1995.
+
+\bibitem{Funke2019}
+S. Funke, F. Sprei, T. Gnann, and P. Pl\"otz,
+``How much charging infrastructure do electric vehicles need? A review of the evidence,''
+\emph{Transportation Research Part D}, vol.~77, pp.~224--242, 2019.
+
+\bibitem{Zhang2011}
+H. Zhang, C. L. Gu, L. W. Gu, and Y. Zhang,
+``The evaluation of tourism destination competitiveness by TOPSIS and information entropy:
+A case study in the Yangtze River Delta of China,''
+\emph{Tourism Management}, vol.~32, no.~2, pp.~443--451, 2011.
+
+\bibitem{Newman2010}
+M. Newman,
+\emph{Networks: An Introduction}.
+Oxford: Oxford University Press, 2010.
+
+\end{thebibliography}
+
+\newpage
+
+% ======================================================================
+% APPENDIX: PYTHON IMPLEMENTATION
+% ======================================================================
+\section*{Appendix: Python Implementation}
+
+\textbf{Dependencies:} Python 3.13+, NumPy 2.5+, SciPy 1.18+, Matplotlib 3.11+.
+Complete source code: \texttt{ev\_charging\_model.py} (supplementary material).
+
+\vspace{4pt}
+
+\noindent\textbf{Core Module Architecture.} The codebase implements the deployment model
+in eight modules, each reproducing a numbered result in this paper.
+
+\texttt{data\_exploration()} checks for missing values, computes indicator Z-scores to flag
+outliers, and builds the correlation matrix. It produces Figure \ref{fig:correlation}.
+
+\texttt{demand\_model()} normalizes the six-indicator decision matrix with
+direction-dependent min-max formulas, computes indicator entropies, and returns the
+entropy weights and TOPSIS demand scores. This function produces Tables
+\ref{tab:weights} and \ref{tab:scores}.
+
+\texttt{ev\_forecast\_arima()} runs the ADF stationarity test, selects the ARIMA order by
+minimum AIC, and forecasts registrations through 2030 with a 25,000 cap. The companion
+\texttt{ev\_forecast()} keeps the logistic S-curve as a comparison baseline, and
+\texttt{compare\_forecasts()} prints the side-by-side table. Together they produce Table
+\ref{tab:forecast} and Figures \ref{fig:forecast} and \ref{fig:acfpacf}.
+
+\texttt{location\_model()} attaches demand coverage, degree centrality, and installation
+cost to each site, then solves the lexicographic zero-one integer program by exhaustive
+enumeration over all combinations of four to six sites under the budget, land, capacity,
+and coverage constraints. It produces Tables \ref{tab:sites} and \ref{tab:phase1}.
+
+\texttt{graph\_model()} constructs the undirected distance-threshold graph (edges at
+$\leq 5$ miles), computes node degrees via the adjacency matrix, and finds connected
+components by breadth-first search. It produces Table \ref{tab:degrees}.
+
+\texttt{break\_even()} computes each site's break-even EV count and the citywide Phase-2
+and Phase-3 thresholds. It produces Table \ref{tab:breakeven}.
+
+\texttt{multi\_period()} solves the discounted three-phase integer program over all
+$4^{10}$ phase assignments. It produces Table \ref{tab:multiperiod}.
+
+\texttt{sensitivity()} re-solves the lexicographic program under scaled growth, scaled
+costs, reduced budgets, and forced-station constraints, producing Figure
+\ref{fig:sensitivity} and Tables \ref{tab:costsens}, \ref{tab:budget}, and
+\ref{tab:whatif}.
+
+All experiments are deterministic (no random seeds, no unordered-set iteration). Execute
+\texttt{python3 ev\_charging\_model.py} to reproduce every number and figure in this
+paper.
+
+\newpage
+
+% ======================================================================
+% AI USAGE REPORT
+% ======================================================================
+\section*{Report on Use of AI Tools}
+
+\textbf{Tools Used:} Anthropic Claude, accessed through the Claude Code IDE extension.
+
+\textbf{Purpose:} We used generative AI as a writing and editing assistant while preparing
+this paper. Here is where it helped:
+
+\begin{enumerate}
+    \item \textbf{Prose refinement:} The AI helped polish the summary sheet, introduction,
+    and letter to the Mayor for clarity and narrative flow. All mathematical content,
+    derivations, and numerical results are our own work.
+    \item \textbf{LaTeX formatting:} The AI gave guidance on LaTeX package setup, margin
+    configuration, page headers, and figure placement to meet HiMCM requirements.
+    \item \textbf{Code implementation:} The AI helped structure and debug the Python
+    implementation of the demand model, location optimization, and forecasting. We
+    designed and verified all the algorithmic logic and mathematics ourselves.
+    \item \textbf{Structural editing:} The AI suggested ways to organize sections,
+    headings, and content flow to make the paper easier for judges to read.
+\end{enumerate}
+
+\textbf{Verification:} Every team member reviewed and approved all AI suggestions before
+we included them. We never used AI-generated math, derivations, or logic without checking
+it ourselves first. We take full responsibility for everything in this paper.
+
+\end{document}
