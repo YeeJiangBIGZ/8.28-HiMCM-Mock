@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "calibration_status": "pending; user requested leaving visit frequency and utilization unset",
+  "peak_utilization_target": null,
+  "model_assumption": "Local registrations generate local public charging demand; no traffic allocation or automatic rerouting.",
+  "profile_mapping_status": "Provisional venue proxies; mixed shares and source transfer need review.",
+  "districts": [
+    {
+      "name": "Downtown",
+      "registrations_2024": 420,
+      "district_type": "commercial / administrative",
+      "profile_weights": {
+        "korea_public_institution": 1
+      },
+      "profile_transfer_validated": false,
+      "public_visits_per_ev_per_week": null,
+      "connectors_by_phase": {
+        "existing": 12,
+        "phase1": 20,
+        "phase2": 20,
+        "phase3": 30
+      }
+    },
+    {
+      "name": "Northside",
+      "registrations_2024": 310,
+      "district_type": "residential",
+      "profile_weights": {
+        "korea_apartment": 1
+      },
+      "profile_transfer_validated": false,
+      "public_visits_per_ev_per_week": null,
+      "connectors_by_phase": {
+        "existing": 3,
+        "phase1": 9,
+        "phase2": 9,
+        "phase3": 9
+      }
+    },
+    {
+      "name": "Southside",
+      "registrations_2024": 280,
+      "district_type": "residential proxy; confirm district label",
+      "profile_weights": {
+        "korea_apartment": 1
+      },
+      "profile_transfer_validated": false,
+      "public_visits_per_ev_per_week": null,
+      "connectors_by_phase": {
+        "existing": 2,
+        "phase1": 8,
+        "phase2": 8,
+        "phase3": 8
+      }
+    },
+    {
+      "name": "Eastside",
+      "registrations_2024": 350,
+      "district_type": "mixed commercial–residential",
+      "profile_weights": {
+        "korea_apartment": null,
+        "korea_market": null
+      },
+      "profile_transfer_validated": false,
+      "public_visits_per_ev_per_week": null,
+      "connectors_by_phase": {
+        "existing": 5,
+        "phase1": 11,
+        "phase2": 11,
+        "phase3": 11
+      }
+    },
+    {
+      "name": "Westside",
+      "registrations_2024": 290,
+      "district_type": "residential",
+      "profile_weights": {
+        "korea_apartment": 1
+      },
+      "profile_transfer_validated": false,
+      "public_visits_per_ev_per_week": null,
+      "connectors_by_phase": {
+        "existing": 1,
+        "phase1": 5,
+        "phase2": 5,
+        "phase3": 5
+      }
+    },
+    {
+      "name": "University",
+      "registrations_2024": 220,
+      "district_type": "educational / commercial",
+      "profile_weights": {
+        "nrel_campus_2019": null,
+        "korea_market": null
+      },
+      "profile_transfer_validated": false,
+      "public_visits_per_ev_per_week": null,
+      "connectors_by_phase": {
+        "existing": 6,
+        "phase1": 6,
+        "phase2": 14,
+        "phase3": 14
+      }
+    },
+    {
+      "name": "Industrial",
+      "registrations_2024": 110,
+      "district_type": "industrial",
+      "profile_weights": {
+        "jiaxing_industrial_park": 1
+      },
+      "profile_transfer_validated": false,
+      "public_visits_per_ev_per_week": null,
+      "connectors_by_phase": {
+        "existing": 4,
+        "phase1": 14,
+        "phase2": 14,
+        "phase3": 14
+      }
+    },
+    {
+      "name": "Mall District",
+      "registrations_2024": 80,
+      "district_type": "commercial",
+      "profile_weights": {
+        "korea_market": 1
+      },
+      "profile_transfer_validated": false,
+      "public_visits_per_ev_per_week": null,
+      "connectors_by_phase": {
+        "existing": 0,
+        "phase1": 0,
+        "phase2": 12,
+        "phase3": 12
+      }
+    },
+    {
+      "name": "Riverside",
+      "registrations_2024": 120,
+      "district_type": "emerging residential",
+      "profile_weights": {
+        "korea_apartment": 1
+      },
+      "profile_transfer_validated": false,
+      "public_visits_per_ev_per_week": null,
+      "connectors_by_phase": {
+        "existing": 0,
+        "phase1": 0,
+        "phase2": 0,
+        "phase3": 6
+      }
+    }
+  ]
+}

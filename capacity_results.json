@@ -1,0 +1,167 @@
+{
+  "model": "local registered EVs; no traffic allocation or automatic interdistrict rerouting",
+  "districts": [
+    {
+      "district": "Downtown",
+      "registrations_2024": 420,
+      "district_type": "commercial / administrative",
+      "profile_weights": {
+        "korea_public_institution": 1
+      },
+      "peak_coefficient_per_weekly_visit": 0.037103377686796335,
+      "peak_estimator": "exact observed joint-profile peak",
+      "calibration_issues": [
+        "Source venue/connector occupancy/hardware transfer not validated",
+        "Public visits per registered EV per week not calibrated",
+        "Planning peak-utilization target not chosen"
+      ],
+      "public_visits_per_ev_per_week": null,
+      "peak_utilization_target": null,
+      "status": "pending_calibration"
+    },
+    {
+      "district": "Northside",
+      "registrations_2024": 310,
+      "district_type": "residential",
+      "profile_weights": {
+        "korea_apartment": 1
+      },
+      "peak_coefficient_per_weekly_visit": 0.046459848597298264,
+      "peak_estimator": "exact observed joint-profile peak",
+      "calibration_issues": [
+        "Source venue/connector occupancy/hardware transfer not validated",
+        "Public visits per registered EV per week not calibrated",
+        "Planning peak-utilization target not chosen"
+      ],
+      "public_visits_per_ev_per_week": null,
+      "peak_utilization_target": null,
+      "status": "pending_calibration"
+    },
+    {
+      "district": "Southside",
+      "registrations_2024": 280,
+      "district_type": "residential proxy; confirm district label",
+      "profile_weights": {
+        "korea_apartment": 1
+      },
+      "peak_coefficient_per_weekly_visit": 0.046459848597298264,
+      "peak_estimator": "exact observed joint-profile peak",
+      "calibration_issues": [
+        "Source venue/connector occupancy/hardware transfer not validated",
+        "Public visits per registered EV per week not calibrated",
+        "Planning peak-utilization target not chosen"
+      ],
+      "public_visits_per_ev_per_week": null,
+      "peak_utilization_target": null,
+      "status": "pending_calibration"
+    },
+    {
+      "district": "Eastside",
+      "registrations_2024": 350,
+      "district_type": "mixed commercial–residential",
+      "profile_weights": {
+        "korea_apartment": null,
+        "korea_market": null
+      },
+      "calibration_issues": [
+        "Profile weights need calibration",
+        "Source venue/connector occupancy/hardware transfer not validated",
+        "Public visits per registered EV per week not calibrated",
+        "Planning peak-utilization target not chosen"
+      ],
+      "public_visits_per_ev_per_week": null,
+      "peak_utilization_target": null,
+      "status": "pending_calibration"
+    },
+    {
+      "district": "Westside",
+      "registrations_2024": 290,
+      "district_type": "residential",
+      "profile_weights": {
+        "korea_apartment": 1
+      },
+      "peak_coefficient_per_weekly_visit": 0.046459848597298264,
+      "peak_estimator": "exact observed joint-profile peak",
+      "calibration_issues": [
+        "Source venue/connector occupancy/hardware transfer not validated",
+        "Public visits per registered EV per week not calibrated",
+        "Planning peak-utilization target not chosen"
+      ],
+      "public_visits_per_ev_per_week": null,
+      "peak_utilization_target": null,
+      "status": "pending_calibration"
+    },
+    {
+      "district": "University",
+      "registrations_2024": 220,
+      "district_type": "educational / commercial",
+      "profile_weights": {
+        "nrel_campus_2019": null,
+        "korea_market": null
+      },
+      "calibration_issues": [
+        "Profile weights need calibration",
+        "Source venue/connector occupancy/hardware transfer not validated",
+        "Public visits per registered EV per week not calibrated",
+        "Planning peak-utilization target not chosen"
+      ],
+      "public_visits_per_ev_per_week": null,
+      "peak_utilization_target": null,
+      "status": "pending_calibration"
+    },
+    {
+      "district": "Industrial",
+      "registrations_2024": 110,
+      "district_type": "industrial",
+      "profile_weights": {
+        "jiaxing_industrial_park": 1
+      },
+      "peak_coefficient_per_weekly_visit": 0.010644589000591334,
+      "peak_estimator": "exact observed joint-profile peak",
+      "calibration_issues": [
+        "Source venue/connector occupancy/hardware transfer not validated",
+        "Public visits per registered EV per week not calibrated",
+        "Planning peak-utilization target not chosen"
+      ],
+      "public_visits_per_ev_per_week": null,
+      "peak_utilization_target": null,
+      "status": "pending_calibration"
+    },
+    {
+      "district": "Mall District",
+      "registrations_2024": 80,
+      "district_type": "commercial",
+      "profile_weights": {
+        "korea_market": 1
+      },
+      "peak_coefficient_per_weekly_visit": 0.03826850690087831,
+      "peak_estimator": "exact observed joint-profile peak",
+      "calibration_issues": [
+        "Source venue/connector occupancy/hardware transfer not validated",
+        "Public visits per registered EV per week not calibrated",
+        "Planning peak-utilization target not chosen"
+      ],
+      "public_visits_per_ev_per_week": null,
+      "peak_utilization_target": null,
+      "status": "pending_calibration"
+    },
+    {
+      "district": "Riverside",
+      "registrations_2024": 120,
+      "district_type": "emerging residential",
+      "profile_weights": {
+        "korea_apartment": 1
+      },
+      "peak_coefficient_per_weekly_visit": 0.046459848597298264,
+      "peak_estimator": "exact observed joint-profile peak",
+      "calibration_issues": [
+        "Source venue/connector occupancy/hardware transfer not validated",
+        "Public visits per registered EV per week not calibrated",
+        "Planning peak-utilization target not chosen"
+      ],
+      "public_visits_per_ev_per_week": null,
+      "peak_utilization_target": null,
+      "status": "pending_calibration"
+    }
+  ]
+}

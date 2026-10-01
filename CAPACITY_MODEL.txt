@@ -1,0 +1,106 @@
+WEEKLY CHARGING CAPACITY — REPRODUCIBLE IMPLEMENTATION
+
+Scope
+Replace a universal 75-EVs-per-connector assumption with district registered EVs,
+public visits per registered EV per week, measured timing/occupancy, and a planning
+peak-utilization target. Use fixed local charging habits for this baseline; no
+traffic allocation, detailed commuting, or automatic rerouting to vacant chargers.
+The original spatial placement tables remain baselines, not certified local capacity.
+
+Current status
+Measured source profiles are fitted and included. The user requested leaving public
+visit frequency and the utilization target unset. Source transfer and mixed-venue
+weights also require review. capacity_results.json therefore reports pending
+calibration and does not emit guessed connector counts, ratios, or calendar dates.
+
+Files
+capacity_model.py: standard-library fitter and evaluator; Python 3.10+.
+capacity_profiles.json: fitted anonymous arrival probabilities, hourly mean occupancy,
+  exact occupancy event changes, source hashes, filters, interval semantics, diagnostics.
+capacity_config.json: registrations, local connector counts by phase, provisional
+  source mappings and explicit null calibration inputs.
+capacity_results.json: reproducible current calibration-status report.
+capacity_sources.json: original download URLs, hashes, schemas and raw row counts.
+plot_capacity_profiles.py: figure generator; Matplotlib required only for plotting.
+test_capacity_model.py: numerical checks of overlap, boundaries and validation.
+
+Regenerate fitted profiles from the ORIGINAL raw files
+python3 capacity_model.py fit --raw-dir /path/to/charging-data
+The directory must contain norway_residential_sessions.csv,
+nrel_workplace_sessions.csv, korea_location_sessions.csv and jiaxing_public_sessions.zip.
+Obtain exact versions from capacity_sources.json and verify SHA-256 hashes against
+the manifest. Raw user-level records are not duplicated into this Overleaf repository.
+
+Evaluate current inputs
+python3 capacity_model.py evaluate
+No silent fallback ratio or illustrative frequency/utilization value exists.
+
+Regenerate the paper's measured-profile figure
+python3 plot_capacity_profiles.py
+
+Verify numerical implementation
+python3 -m unittest -v test_capacity_model.py
+
+Calibration workflow
+1. Review each district's venue mapping, public access, source coverage, vehicle mix,
+   actual plug-occupancy semantics and compatibility with the planned connector power.
+   Southside's precise type and the research-campus educational proxy need confirmation.
+2. For mixed districts, replace null profile_weights with nonnegative charging-VISIT
+   fractions summing to 1. These weights are not TOPSIS scores or population shares.
+3. Supply public_visits_per_ev_per_week using a documented served-EV population and
+   exposure period. Do not divide all observed sessions by unique users and the full
+   source span as if every user were present throughout. Include visits to the modeled
+   public connectors only; home/private sessions can provide timing proxies but not
+   automatically public-frequency calibration.
+4. Set peak_utilization_target in (0,1] as a stated planning assumption.
+5. Set profile_transfer_validated=true only after the transfer checks above.
+6. Run evaluate. For each calibrated district it returns peak fraction, required
+   connectors, rounded and unrounded supported EVs per connector, and phase-local
+   supported registrations/shortfalls. Apply forecast registrations to these local
+   thresholds before approving phase dates. A zero-supply district with positive
+   demand has an immediate shortfall even when the city has spare capacity elsewhere.
+
+Mathematics and units
+For n measured sessions, fold each start/end interval onto a 168-hour week. The
+occupancy curve b(x) is occupied connectors divided by n, and its integral is the
+mean interval duration in hours. Normalize arrival counts separately to sum to 1.
+For registered EVs E and public visits/EV/week nu:
+  expected occupancy A(x)=E*nu*b(x)
+  eta=nu*max_x b(x)
+  required connectors=ceil(E*eta/u)
+  unrounded EVs per connector=u/eta
+  rounded supported-fleet ratio=E/required_connectors
+Hourly means are exported for plotting. Peak sizing uses the exact folded start/end
+events, including week wraparound and departures grouped with arrivals. Mixed
+profiles combine events before finding their peak; individual peaks are not added.
+These are expected-profile calculations, not guaranteed waiting-time bounds.
+
+Source filters and limits
+- Korea: five selected venue types; ChargerType=0 (slow). Single-digit clock hours
+  are parsed correctly; date/time fields preserve seconds. The downloaded 13-field
+  schema lacks the paper's described charger-power and AC/DC fields.
+- Norway: original measured Dataset 1; plugin_time/plugout_time. Thirty-eight
+  unparseable/missing intervals are excluded. Do not confuse predicted datasets
+  elsewhere at the same Zenodo record with observations.
+- NREL: actual session intervals with start in 2019, avoiding COVID periods. This
+  research-campus workplace is not university student traffic. Pricing regimes and
+  PHEV/BEV mix need transfer review. Three week-long sessions are retained and flagged,
+  not silently clipped. Their validity should be checked before applying this source.
+- Jiaxing: industrial/technology park venues; is_abnormal=0. Start/end fields are
+  TRANSACTION times, not verified plug-out. These fitted transaction curves cannot
+  establish public connector capacity without occupancy/hardware validation.
+- Nonpositive intervals are excluded and counted. Longer-than-week intervals are
+  retained, folded including complete-week occupancy, and flagged for review.
+- Timestamps use source-local naive clock values; DST/UTC offsets are not guessed.
+- No source-session count is a city EV catchment denominator. Observed sessions
+  omit unsuccessful charging attempts and may reflect existing congestion.
+- Fitted source samples are pooled empirical weeks; seasonal variation, pricing,
+  sample exposure and extreme-event uncertainty are not modeled in this simple version.
+
+Paper integration
+main.tex now states the assumptions, equations, measured source summary and unresolved
+calibration. Citywide 5,475/6,975 triggers and their dependent timing claims were removed.
+The old ev_breakeven.png and ev_sensitivity_sweep.png remain historical tracked assets,
+but are no longer used as evidence for this model. Costs/spatial site order remain
+the original baseline. Financial break-even is separate from occupied-connector capacity.
+The AI-use report identifies this revision and does not claim completed team review.
