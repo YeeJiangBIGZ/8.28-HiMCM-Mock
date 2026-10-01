@@ -668,7 +668,6 @@ EV registrations & 320 & 410 & 580 & 860 & 1{,}380 & 2{,}180 \\
 \end{tabular}
 \end{table}
 
-<<<<<<< HEAD
 \subsection{ARIMA Model}
 \label{subsec:arima}
 
@@ -707,7 +706,7 @@ where $r$ is the growth rate and $t_0$ is the inflection point. We fit this curv
 \subsection{Forecast Comparison}
 \label{subsec:forecast-compare}
 
-Figure~\ref{fig:ev-forecast} overlays the historical registrations, the ARIMA forecast with its 95\% confidence interval, the logistic baseline, and the 25{,}000-vehicle cap. Table~\ref{tab:forecast-compare} lists the point forecasts for 2025, 2026, 2027, and 2030. The two models agree closely through 2026, then diverge. The logistic curve rises more steeply after 2027 and reaches 14{,}751 vehicles by 2030, while the ARIMA forecast reaches 11{,}915. The ARIMA uncertainty band widens over time but remains below the logistic curve. Both forecasts cross the Phase-2 and Phase-3 break-even thresholds (derived in Section~\ref{sec:expansion}) in the same years, so the choice of model does not alter the timing of the deployment phases.
+Figure~\ref{fig:ev-forecast} overlays the historical registrations, the ARIMA forecast with its 95\% confidence interval, the logistic baseline, and the 25{,}000-vehicle cap. Table~\ref{tab:forecast-compare} lists the point forecasts for 2025, 2026, 2027, and 2030. The two models agree closely through 2026, then diverge. The logistic curve rises more steeply after 2027 and reaches 14{,}751 vehicles by 2030, while the ARIMA forecast reaches 11{,}915. The ARIMA uncertainty band widens over time but remains below the logistic curve. The revised occupancy model uses these forecasts as demand inputs; expansion years depend on calibrated public charging frequency, connector occupancy and the planning utilization target.
 
 \begin{figure}[H]
 \centering
@@ -735,20 +734,12 @@ Year & Logistic (baseline) & ARIMA (primary) \\
 \subsection{Model Selection and Adopted Forecast}
 \label{subsec:forecast-selection}
 
-We adopt the ARIMA forecast as the primary input for the expansion plan. This choice is based on three considerations. First, the ARIMA residuals satisfy the assumptions of statistical inference, whereas the logistic curve imposes a saturation shape that is not yet supported by the data. Second, the ARIMA model follows the recent growth trend without forcing an early inflection, making it more conservative for public investment. Third, the near-term forecasts (2025--2027) are similar across both models, so the Phase-1 and Phase-2 decisions are robust to this choice. The logistic curve is retained as an optimistic upper scenario for the sensitivity analysis in Section~\ref{subsec:sensitivity}.
+We adopt the ARIMA forecast as the primary input for the expansion plan. This choice is based on three considerations. First, the ARIMA residuals satisfy the assumptions of statistical inference, whereas the logistic curve imposes a saturation shape that is not yet supported by the data. Second, the ARIMA model follows the recent growth trend without forcing an early inflection, making it more conservative for public investment. Third, the near-term forecasts (2025--2027) are similar across both models. Their effect on revised expansion dates still requires the independent capacity inputs. The logistic curve is retained as an optimistic upper scenario for the sensitivity analysis in Section~\ref{sec:expansionsensitivity}.
 
 \subsection{Implications for Deployment Planning}
 \label{subsec:forecast-implications}
 
-The forecast provides the demand input for the phased deployment roadmap in Task~3. Using an empirical utilization rule of 75 EVs per public charger, we compute the citywide EV thresholds that trigger each expansion phase: Phase~2 begins when registrations reach 5{,}475, and Phase~3 begins at 6{,}975. Under the adopted ARIMA forecast, these thresholds are crossed in 2027 and 2028, respectively. This timing supports a three-phase buildout: six stations in 2025--2026, two additional stations in 2027--2028, and the final two stations in 2029--2030. The full break-even calculation and the multi-period optimization are presented in Section~\ref{sec:expansion}. The forecast thus confirms that Springfield's EV growth justifies a staged, demand-driven expansion rather than a single large construction program.
-=======
-The two forecasts are close through 2026 and separate afterward. The logistic, forced to
-follow an S-shape, inflects near 2029 and reaches 14,751 by 2030; the ARIMA, constrained
-only by the 25,000 cap, follows the recent trend and reaches 11,915. We adopt the ARIMA
-forecast as the primary input to the district occupancy checks in Section 6. The revised
-model does not assert phase crossing years before public charging frequency and the
-utilization target are calibrated. The logistic forecast is retained as a more optimistic upper scenario.
->>>>>>> 7b7bdf1 (Replace fixed EV charger ratio with measured weekly occupancy model)
+The forecast provides the registered-EV input for the local weekly occupancy checks in Section~\ref{sec:weeklycapacity}. A stated fixed-share assumption can project each district's EV count from the citywide total. Expansion is required when expected peak occupancy exceeds the target share of local connectors. Public charging frequency and the target remain unset, so no numerical opening years or universal supported-EV ratio are asserted. Financial break-even and the retained site ordering are reported separately in Section~\ref{sec:expansion}.
 
 % ======================================================================
 % SECTION 5: TASK 2 — LOCATION OPTIMIZATION
@@ -1012,6 +1003,7 @@ hub matters only when a station there also shortens the nearest drive for high d
 % SECTION 6: TASK 3 — EXPANSION PLANNING AND SENSITIVITY
 % ======================================================================
 \section{Task 3: Future Expansion Planning}
+\label{sec:expansion}
 
 \subsection{Financial Break-Even Analysis}
 
@@ -1442,6 +1434,7 @@ District-type scale & 0.8 / 1.0 / 1.2 & Phase-1 sites stay S2--S8; distance stay
 \end{enumerate}
 
 \subsection{Limitations and Improvement Schemes}
+\label{subsec:limitations}
 
 \begin{enumerate}
     \item \textbf{Short sample and imposed ceiling.} The ARIMA forecast is fit on only six
@@ -1705,7 +1698,7 @@ entropy weights and TOPSIS demand scores. This function produces Tables
 minimum AIC, and forecasts registrations through 2030 with a 25,000 cap. The companion
 \texttt{ev\_forecast()} keeps the logistic S-curve as a comparison baseline, and
 \texttt{compare\_forecasts()} prints the side-by-side table. Together they produce Table
-\ref{tab:forecast} and Figures \ref{fig:forecast} and \ref{fig:acfpacf}.
+\ref{tab:forecast-compare} and Figures \ref{fig:ev-forecast} and \ref{fig:acf-pacf}.
 
 \texttt{location\_model()} attaches each district's demand weight, degree centrality, and
 installation cost to its candidate sites, then solves the $p$-median facility-location
