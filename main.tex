@@ -629,76 +629,100 @@ ten points, so these districts are broadly comparable. Riverside ranks last at
 a present bottleneck.
 
 \subsection{Citywide EV Registration Forecast}
+\label{sec:forecast}
 
-To plan expansion we must forecast how many EVs Springfield will have. The city holds only
-six years of registrations, and the series is non-stationary, so a regression on a time
-index is unreliable. We model the series with a classical ARIMA (autoregressive integrated
-moving-average) model \cite{Box2015, Hyndman2018}, and keep the logistic S-curve, the
-classic technology-diffusion curve \cite{Bass1969, Rogers2003}, as a comparison baseline.
+To plan the expansion of Springfield's charging network, we must estimate how many electric vehicles the city will have in the coming years. The deployment roadmap in Task~3 depends on knowing when demand will exceed the capacity of the currently installed chargers. This section forecasts citywide EV registrations through 2030, with particular attention to 2025--2027 as required by Task~1c. We therefore compare two forecasting approaches: an ARIMA time-series model as the primary method, and a logistic S-curve as a technology-diffusion baseline.
 
-We first choose the integration order $d$ with the Augmented Dickey--Fuller (ADF) test
-\cite{Dickey1979}. The test fails to reject a unit root in the level and the first
-difference, so we treat the series as integrated of order two and set $d=2$. Let $C_t$
-be citywide registrations in year $t$ and $\nabla^{2} C_t = C_t - 2C_{t-1} + C_{t-2}$ its
-second difference. The general ARIMA$(p,d,q)$ model writes
+\subsubsection{Data and Forecasting Setup}
+\label{subsec:forecast-data}
 
-\begin{equation}
-\nabla^{d} C_t = \phi_1 \nabla^{d} C_{t-1} + \cdots + \phi_p \nabla^{d} C_{t-p}
-              + \varepsilon_t + \theta_1 \varepsilon_{t-1} + \cdots + \theta_q \varepsilon_{t-q},
-\end{equation}
-
-where $\varepsilon_t$ is white noise. We select $p,q\in\{0,1\}$ by minimizing the Akaike
-information criterion (AIC), which trades fit against model size. The chosen model is
-ARIMA$(1,2,0)$ with AIC $=52.07$, coefficient $\hat\phi_1 = 0.935$, and residual standard
-deviation $79$ vehicles. Figure \ref{fig:acfpacf} shows the ACF and PACF of the
-second-differenced series used for this choice. Both lag-1 values fall within the 95\%
-significance bounds, which confirms that a low order $p=1$, $q=0$ is adequate and that the
-residuals are approximately white noise.
-
-A pure ARIMA has no saturation ceiling and would grow without bound on a long horizon. We
-impose the hard business upper bound of $25{,}000$ vehicles from Assumption 2, so
-the forecast cannot exceed the conservative long-run ceiling. Figure
-\ref{fig:forecast} overlays the historical data, the ARIMA forecast with its 95\%
-interval, and the logistic baseline, and Table \ref{tab:forecast} lists the point
-forecasts.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.80\textwidth]{ev_forecast_compare.png}
-\caption{Citywide EV forecast, historical and projected. Black points are the 2019--2024 registrations; the blue curve is the ARIMA forecast with its 95\% band, the red curve the logistic baseline, and the gray line the 25,000-vehicle cap.}
-\label{fig:forecast}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.72\textwidth]{ev_arima_acf_pacf.png}
-\caption{Autocorrelation (ACF, left) and partial autocorrelation (PACF, right) of the second-differenced registrations at lags 0 and 1.}
-\label{fig:acfpacf}
-\end{figure}
+The historical data consist of annual citywide EV registrations from 2019 to 2024, shown in Table~\ref{tab:ev-history}. The series grows from 320 vehicles in 2019 to 2{,}180 in 2024, a nearly sevenfold increase. The growth rate itself is not constant, which rules out a simple trend line. We treat the series as a stochastic process and model it with an ARIMA framework, while also fitting a logistic curve to capture possible saturation effects. The forecast horizon extends to 2030 to align with the city's carbon-reduction goal.
 
 \begin{table}[H]
 \centering
-\caption{EV Registration Forecast: ARIMA vs.\ Logistic Baseline}
-\label{tab:forecast}
-\renewcommand{\arraystretch}{0.95}
-\begin{tabular}{@{}p{0.28\textwidth}p{0.14\textwidth}p{0.14\textwidth}p{0.14\textwidth}p{0.14\textwidth}@{}}
+\caption{Historical citywide EV registrations (2019--2024).}
+\label{tab:ev-history}
+\begin{tabular}{lcccccc}
 \toprule
-Model & 2025 & 2026 & 2027 & 2030 \\
+Year        & 2019 & 2020 & 2021 & 2022 & 2023 & 2024 \\
 \midrule
-Logistic (baseline) & 3,228 & 4,734 & 6,725 & 14,751 \\
-ARIMA (primary) & 3,242 & 4,548 & 6,083 & 11,915 \\
+EV registrations & 320 & 410 & 580 & 860 & 1{,}380 & 2{,}180 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The two forecasts are close through 2026 and separate afterward. The logistic, forced to
-follow an S-shape, inflects near 2029 and reaches 14,751 by 2030; the ARIMA, constrained
-only by the 25,000 cap, follows the recent trend and reaches 11,915. Both forecasts cross
-the Phase-2 break-even threshold (5,475 EVs) in 2027 and the Phase-3 threshold (6,975 EVs)
-in 2028, so the phase timing is insensitive to the choice of method. We adopt the ARIMA
-forecast as the primary input to the break-even and multi-period models in Section 6,
-because its residuals satisfy the assumptions of statistical inference; the logistic is
-retained as a more optimistic upper scenario.
+\subsection{ARIMA Model}
+\label{subsec:arima}
+
+The ARIMA model describes a time series using its own past values (autoregressive terms) and past forecast errors (moving-average terms). It does not impose a predetermined shape, allowing the recent growth pattern to determine the trajectory. We first test for stationarity using the Augmented Dickey--Fuller (ADF) test. The test fails to reject a unit root in both the level and the first difference, so we difference the series twice and set the integration order $d = 2$. Let $C_t$ denote citywide registrations in year $t$, and let $\nabla^2 C_t = C_t - 2C_{t-1} + C_{t-2}$ be its second difference. The general ARIMA$(p,d,q)$ model is
+
+\begin{equation}
+\nabla^d C_t = \phi_1 \nabla^d C_{t-1} + \cdots + \phi_p \nabla^d C_{t-p} + \epsilon_t + \theta_1 \epsilon_{t-1} + \cdots + \theta_q \epsilon_{t-q},
+\label{eq:arima}
+\end{equation}
+
+where $\epsilon_t$ is white noise. We select $p, q \in \{0,1\}$ by minimizing the Akaike Information Criterion (AIC). The chosen model is ARIMA$(1,2,0)$ with AIC $= 52.07$, autoregressive coefficient $\hat{\phi}_1 = 0.935$, and residual standard deviation $79$ vehicles.
+
+Figure~\ref{fig:acf-pacf} shows the second-differenced series alongside its ACF and PACF. Because the second-differenced series contains only four observations, partial autocorrelations can be estimated at lag~1 only. Both lag-1 values fall within the 95\% significance bounds, which is consistent with the ARIMA$(1,2,0)$ specification though not strong evidence for it; Section~\ref{subsec:limitations} notes the limited power of diagnostics on such a short series.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{ev_arima_acf_pacf.png}
+\caption{Second-differenced EV registration series (left) with its autocorrelation function (center) and partial autocorrelation function (right). With only four second-differenced observations, lag-1 values are the only estimable ones.}
+\label{fig:acf-pacf}
+\end{figure}
+
+A pure ARIMA model has no saturation ceiling and would grow without bound over a long horizon. We therefore impose a conservative business upper bound of 25{,}000 vehicles, well above the 2030 forecast, so that it caps only the distant tail and does not affect the near-term projections. The forecast with this cap is shown in Figure~\ref{fig:ev-forecast}, along with the historical data and the logistic baseline.
+
+\subsection{Logistic S-Curve Baseline}
+\label{subsec:logistic}
+
+The logistic model is the classic technology-diffusion curve, often used to describe the adoption of new products such as electric vehicles. It assumes that growth starts slowly, accelerates, and eventually saturates at a carrying capacity $K$. The model is
+
+\begin{equation}
+C_t = \frac{K}{1 + e^{-r(t - t_0)}},
+\label{eq:logistic}
+\end{equation}
+
+where $r$ is the growth rate and $t_0$ is the inflection point. We fit this curve to the same 2019--2024 data. Because the logistic model forces an S-shape, it provides a useful upper-bound scenario: if adoption accelerates faster than the ARIMA trend, the logistic forecast represents a more optimistic future. We do not adopt it as the primary forecast because the short data series does not yet show clear evidence of saturation, and the imposed shape may overstate long-run growth.
+
+\subsection{Forecast Comparison}
+\label{subsec:forecast-compare}
+
+Figure~\ref{fig:ev-forecast} overlays the historical registrations, the ARIMA forecast with its 95\% confidence interval, the logistic baseline, and the 25{,}000-vehicle cap. Table~\ref{tab:forecast-compare} lists the point forecasts for 2025, 2026, 2027, and 2030. The two models agree closely through 2026, then diverge. The logistic curve rises more steeply after 2027 and reaches 14{,}751 vehicles by 2030, while the ARIMA forecast reaches 11{,}915. The ARIMA uncertainty band widens over time but remains below the logistic curve. Both forecasts cross the Phase-2 and Phase-3 break-even thresholds (derived in Section~\ref{sec:expansion}) in the same years, so the choice of model does not alter the timing of the deployment phases.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{ev_forecast_compare.png}
+\caption{Citywide EV forecast. Black points are historical registrations (2019--2024). The blue curve is the ARIMA$(1,2,0)$ forecast with its 95\% interval; the red curve is the logistic S-curve baseline; the dashed gray line is the 25{,}000-vehicle business cap.}
+\label{fig:ev-forecast}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{EV registration forecast: ARIMA versus logistic baseline.}
+\label{tab:forecast-compare}
+\begin{tabular}{lcc}
+\toprule
+Year & Logistic (baseline) & ARIMA (primary) \\
+\midrule
+2025 & 3{,}228 & 3{,}242 \\
+2026 & 4{,}734 & 4{,}548 \\
+2027 & 6{,}725 & 6{,}083 \\
+2030 & 14{,}751 & 11{,}915 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Model Selection and Adopted Forecast}
+\label{subsec:forecast-selection}
+
+We adopt the ARIMA forecast as the primary input for the expansion plan. This choice is based on three considerations. First, the ARIMA residuals satisfy the assumptions of statistical inference, whereas the logistic curve imposes a saturation shape that is not yet supported by the data. Second, the ARIMA model follows the recent growth trend without forcing an early inflection, making it more conservative for public investment. Third, the near-term forecasts (2025--2027) are similar across both models, so the Phase-1 and Phase-2 decisions are robust to this choice. The logistic curve is retained as an optimistic upper scenario for the sensitivity analysis in Section~\ref{subsec:sensitivity}.
+
+\subsection{Implications for Deployment Planning}
+\label{subsec:forecast-implications}
+
+The forecast provides the demand input for the phased deployment roadmap in Task~3. Using an empirical utilization rule of 75 EVs per public charger, we compute the citywide EV thresholds that trigger each expansion phase: Phase~2 begins when registrations reach 5{,}475, and Phase~3 begins at 6{,}975. Under the adopted ARIMA forecast, these thresholds are crossed in 2027 and 2028, respectively. This timing supports a three-phase buildout: six stations in 2025--2026, two additional stations in 2027--2028, and the final two stations in 2029--2030. The full break-even calculation and the multi-period optimization are presented in Section~\ref{sec:expansion}. The forecast thus confirms that Springfield's EV growth justifies a staged, demand-driven expansion rather than a single large construction program.
 
 % ======================================================================
 % SECTION 5: TASK 2 — LOCATION OPTIMIZATION
