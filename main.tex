@@ -725,21 +725,41 @@ We formalize the objective as a $p$-median facility-location problem \cite{daski
 
 subject to
 
-\begin{align}
-\sum_{j=1}^{10} x_{ij} &= 1, \qquad i = 1,\ldots,9 \qquad \text{(every district is served)} \label{eq:serve} \\
-x_{ij} &\le y_j, \qquad i = 1,\ldots,9,\; j = 1,\ldots,10 \qquad \text{(only open stations serve)} \label{eq:open} \\
-x_{ij} &= 0 \;\; \text{whenever } d_{ij} > 5 \qquad \text{(coverage radius)} \label{eq:radius} \\
-\sum_{j=1}^{10} c_j \, y_j &\le 200 \qquad \text{(budget: \$2{,}000{,}000)} \label{eq:budget} \\
-4 \le \sum_{j=1}^{10} y_j &\le 6 \qquad \text{(station count)} \label{eq:count} \\
-L_j \ge 3 y_j, \quad M_j &\ge 4 y_j \qquad \text{(land and capacity filters)} \label{eq:filters} \\
-y_j, x_{ij} &\in \{0,1\}. \label{eq:binary}
-\end{align}
+\begin{gather}
+\sum_{j=1}^{10} x_{ij} = 1, \qquad i = 1,\ldots,9 \qquad \text{(every district is served)} \label{eq:serve} \\[4pt]
+x_{ij} \le y_j, \qquad i = 1,\ldots,9,\; j = 1,\ldots,10 \qquad \text{(only open stations serve)} \label{eq:open} \\[4pt]
+x_{ij} = 0 \;\; \text{whenever } d_{ij} > 5 \qquad \text{(coverage radius)} \label{eq:radius} \\[4pt]
+\sum_{j=1}^{10} c_j \, y_j \le 200 \qquad \text{(budget: \$2{,}000{,}000)} \label{eq:budget} \\[4pt]
+4 \le \sum_{j=1}^{10} y_j \le 6 \qquad \text{(station count)} \label{eq:count} \\[4pt]
+L_j \ge 3 y_j, \quad M_j \ge 4 y_j \qquad \text{(land and capacity filters)} \label{eq:filters} \\[4pt]
+y_j, x_{ij} \in \{0,1\}. \label{eq:binary}
+\end{gather}
 
 The first three constraints define the assignment. The coverage radius forces $x_{ij} = 0$ when district $i$ lies more than five miles from site $j$, so no district is assigned to a station it cannot reach. Because drivers always choose the nearest station, in an optimal solution district $i$ is assigned to the closest open site, so the assignment variables $x_{ij}$ are determined once the open sites $y_j$ are chosen. We can therefore solve the model by enumerating the open sets directly.
 
-\textbf{Why $p$-median rather than maximal covering?} A maximal-covering model asks only whether a district lies within the radius and ignores the distance inside it. With a five-mile radius and nine compact districts, a few central stations already cover every district, so maximal covering stops discriminating after three stations. The $p$-median objective keeps rewarding smaller distances after coverage is met, so it ranks layouts precisely.
+\textbf{Why $p$-median rather than maximal covering.} A maximal-covering model
+asks only whether a district lies within the coverage radius and disregards
+distance within it. Given the five-mile radius and the compactness of the nine
+districts, a small number of central stations already cover the entire city, so
+the maximal-covering objective ceases to discriminate beyond roughly three
+stations. The $p$-median objective, by contrast, continues to reward smaller
+distances after coverage is attained, and therefore ranks candidate layouts with
+greater precision.
 
-\textbf{Why not include maintenance cost or break-even in the objective?} The $p$-median objective is deliberately spatial: it minimizes demand-weighted travel distance and leaves economic viability to Section~\ref{sec:expansion}. That separation is intentional. Break-even depends on charger utilization, which is a system-wide quantity, not a site-level one, so embedding it in site selection would double-count economic considerations and obscure the spatial logic. Section~\ref{subsec:break-even} evaluates the selected sites against their break-even thresholds and finds that five of the six Phase-1 stations reach break-even under the 2030 forecast, while S8 (Industrial) is a coverage investment rather than a revenue-generating one. If the Council requires every Phase-1 station to break even within three years, S8 should be deferred to Phase 2, and the $p$-median optimum shifts to five stations --- the trade-off already captured in the sensitivity analysis of Table~\ref{tab:forced-station}.
+\textbf{Why maintenance cost and break-even are excluded from the objective.}
+The $p$-median objective is intentionally spatial: it minimizes demand-weighted
+travel distance and defers economic viability to Section~\ref{sec:expansion}.
+This separation is deliberate. Break-even is governed by charger utilization,
+a system-wide quantity rather than a site-level one, so incorporating it into
+site selection would double-count economic considerations and dilute the
+spatial logic of the model. The economic layer is instead applied after
+selection: Section~\ref{subsec:break-even} evaluates the chosen sites against
+their break-even thresholds and finds that five of the six Phase-1 stations
+reach break-even under the 2030 forecast, whereas S8 (Industrial) functions as
+a coverage investment rather than a revenue-generating asset. If the Council
+requires every Phase-1 station to break even within three years, S8 would be
+deferred to Phase~2 and the $p$-median optimum would shift to five stations ---
+precisely the trade-off quantified in Table~\ref{tab:forced-station}.
 
 With ten candidate sites the feasible sets number at most
 \[
@@ -879,6 +899,7 @@ hub matters only when a station there also shortens the nearest drive for high d
 \label{sec:expansion}
 
 \subsection{Financial Break-Even Analysis}
+\label{sec:break-even}
 
 The Phase-1 selection answers where to build first. To decide \emph{when} to build the next
 stations we separate financial viability from sufficient local connector capacity.
@@ -1539,6 +1560,10 @@ Y. Zhang et al.,
 ``A high-resolution electric vehicle charging transaction dataset with multidimensional
 features in China,'' \emph{Scientific Data}, 2025.
 Dataset: \url{https://doi.org/10.6084/m9.figshare.28182251}.
+
+\bibitem{daskin1995}
+M.~S. Daskin, \emph{Network and Discrete Location: Models, Algorithms, and Applications}.
+New York: Wiley, 1995.
 
 \end{thebibliography}
 
