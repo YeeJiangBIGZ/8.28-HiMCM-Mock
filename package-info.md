@@ -12,6 +12,11 @@
 - `section4 newdraft.tex` — teammate's empty draft file retained from Overleaf.
 - Existing `ev_*.png` and `temp_arima_forecast.png` — original paper figures; the old
   break-even/utilization-sweep assets are retained as history but no longer cited.
+- `ev_district_peak_profiles.png` — nine daily peak/off-peak panels from source timing;
+  mixed districts use illustrative 50/50 charging-visit shares.
+- `district_peak_profiles.json` — reproducible fits, source hashes and provisional mappings.
+- `plot_district_peak_profiles.py` — generates those panels and metadata; `--embed` also
+  refreshes the native single-file preview image in barebones.tex. Requires Matplotlib/Pillow.
 - `ev_capacity_profiles.png` — new figure of measured source weekly profiles.
 - `capacity_model.py` — reproducible fitting and local-capacity evaluator.
 - `capacity_config.json` — registration/local connector data and unset calibration.
