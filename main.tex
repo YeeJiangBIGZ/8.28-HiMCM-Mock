@@ -713,7 +713,65 @@ The forecast provides the registered-EV input for the local weekly occupancy che
 % ======================================================================
 % SECTION 5: TASK 2 — LOCATION OPTIMIZATION
 % ======================================================================
-\section{$p$-Median Facility-Location Formulation}
+\section{Task 2: Charging Station Location Optimization}
+
+\subsection{Site Attributes and the Facility-Location Objective}
+\label{subsec:site-attributes}
+
+A charging station is useful only if drivers can reach it. This fact fixes the
+objective of our location model. A driver who needs a charge travels to the
+nearest open station, so the quantity that matters is the distance from each
+district to its closest station, not a sum of priority scores attached to
+individual sites. We weight that distance by the district's demand, because a
+mile of extra travel matters more in a district with many electric vehicles
+than in one with few.
+
+Each district $i$ carries a demand weight $w_i = S_i / 100$, the TOPSIS score
+of Section~\ref{subsec:topsis} rescaled to the unit interval. A station in
+district $j$ serves every district $i$ within the five-mile coverage radius,
+the same five-mile threshold the problem uses for the connectivity task of
+Section~\ref{subsec:connectivity}, so the coverage constraint and the
+connectivity analysis share one distance standard. The cost of a layout is the
+sum, over districts, of $w_i$ times the distance to district $i$'s nearest
+station. This is the demand-weighted travel distance, and it is what the model
+minimizes.
+
+Two feasibility filters carry over from the site data. A site must be
+developable and must be able to absorb the demand it serves:
+
+\begin{gather}
+L_s \ge 3 \qquad \text{(land availability at least 3 of 5)}, \label{eq:land-filter} \\[4pt]
+M_s \ge 4 \qquad \text{(capacity of at least 4 chargers)}. \label{eq:cap-filter}
+\end{gather}
+
+The land filter excludes S9 (Mall District), whose land score is 2, from the
+Phase-1 candidate set; every other site passes. The capacity filter is
+non-binding, because all ten sites host at least four chargers.
+Table~\ref{tab:site-data} lists the site-level data.
+
+\begin{table}[H]
+\centering
+\caption{Candidate site data: demand weight, cost, and feasibility.}
+\label{tab:site-data}
+\begin{tabular}{llcccc}
+\toprule
+Site & District & $w_i$ & Install (\$) & Land & Max \\
+\midrule
+S1  & Downtown     & 0.7224 & 450{,}000 & 3 & 10 \\
+S2  & Downtown     & 0.7224 & 380{,}000 & 4 &  8 \\
+S3  & Northside    & 0.4188 & 300{,}000 & 5 &  6 \\
+S4  & Southside    & 0.4475 & 280{,}000 & 4 &  6 \\
+S5  & Eastside     & 0.5380 & 320{,}000 & 5 &  6 \\
+S6  & Westside     & 0.4058 & 250{,}000 & 5 &  4 \\
+S7  & University   & 0.4680 & 350{,}000 & 3 &  8 \\
+S8  & Industrial   & 0.3546 & 400{,}000 & 4 & 10 \\
+S9  & Mall District & 0.5030 & 500{,}000 & 2 & 12 \\
+S10 & Riverside    & 0.2611 & 350{,}000 & 5 &  6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{$p$-Median Facility-Location Formulation}
 \label{subsec:pmedian}
 
 We formalize the objective as a $p$-median facility-location problem \cite{daskin1995}. Let $y_j \in \{0,1\}$ indicate whether site $j$ is opened, and let $x_{ij} \in \{0,1\}$ indicate whether district $i$ is assigned to the station at site $j$. The model chooses open sites and assigns every district to one open site so as to minimize the demand-weighted travel distance:
@@ -759,13 +817,12 @@ reach break-even under the 2030 forecast, whereas S8 (Industrial) functions as
 a coverage investment rather than a revenue-generating asset. If the Council
 requires every Phase-1 station to break even within three years, S8 would be
 deferred to Phase~2 and the $p$-median optimum would shift to five stations ---
-precisely the trade-off quantified in Table~\ref{tab:forced-station}.
+precisely the trade-off quantified in Table~\ref{tab:whatif}.
 
-With ten candidate sites the feasible sets number at most
-\[
-\binom{10}{4} + \binom{10}{5} + \binom{10}{6} = 672,
-\]
-so we enumerate every feasible combination, evaluate its demand-weighted distance, and keep the smallest, breaking ties by lower cost. The result is provably optimal.
+With ten candidate sites, the feasible sets number at most 
+$\binom{10}{4} + \binom{10}{5} + \binom{10}{6} = 672$, so we enumerate every 
+feasible combination, evaluate its demand-weighted distance, and keep the 
+smallest, breaking ties by lower cost. The result is provably optimal.
 
 \subsection{Optimal Phase-1 Selection}
 \label{subsec:phase1}
@@ -796,7 +853,7 @@ The $p$-median optimum selects six stations across six distinct districts, spend
 
 The most instructive choice is S8 (Industrial). Industrial has only the eighth-highest demand (0.3546), yet it is selected ahead of Mall District (0.5030) and University (0.4680), because of distance. Industrial's only neighbor within five miles is Southside, so without its own station its drivers face a 3.5-mile drive. Mall District and University already sit within two miles of a Phase-1 station, so their residual travel is small. The $p$-median objective weighs this residual distance and selects the peripheral site.
 
-A note on economic viability. S8 also has the highest break-even count among the six selected sites, at 1{,}240 EVs, against only 110 registered EVs in Industrial today. It is therefore a coverage investment, not a revenue-generating one, and it is the first station to be dropped if the budget tightens or if costs rise (Section~\ref{subsec:sensitivity}). Section~\ref{subsec:break-even} formalizes this check.
+A note on economic viability. S8 also has the highest break-even count among the six selected sites, at 1{,}240 EVs, against only 110 registered EVs in Industrial today. It is therefore a coverage investment, not a revenue-generating one, and it is the first station to be dropped if the budget tightens or if costs rise (Section~\ref{sec:expansionsensitivity}). Section~\ref{subsec:break-even} formalizes this check.
 
 \begin{figure}[htbp]
 \centering
@@ -899,7 +956,7 @@ hub matters only when a station there also shortens the nearest drive for high d
 \label{sec:expansion}
 
 \subsection{Financial Break-Even Analysis}
-\label{sec:break-even}
+\label{subsec:break-even}
 
 The Phase-1 selection answers where to build first. To decide \emph{when} to build the next
 stations we separate financial viability from sufficient local connector capacity.
