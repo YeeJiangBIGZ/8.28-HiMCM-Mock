@@ -45,27 +45,51 @@ def fit_daily(profile):
 
 
 def embed_preview():
-    """Refresh the native editor's single-file fallback without external TeX assets."""
-    import textwrap
-    import zlib
-    from PIL import Image
-    im = Image.open(ROOT/'ev_district_peak_profiles.png').convert('RGB')
-    width,height = im.size
-    encoded = '\n'.join(x+'%' for x in textwrap.wrap(zlib.compress(im.tobytes(),9).hex(),120))
-    slash = chr(92)
-    macro = (f'{slash}newcommand{{{slash}DistrictPeakOriginal}}[1]{{{slash}resizebox{{#1}}{{!}}{{{slash}hbox{{%\n'
-             f'{slash}special{{pdf:stream @DistrictPeakOriginal <{encoded}\n> << /Type /XObject /Subtype /Image /BitsPerComponent 8 /ColorSpace /DeviceRGB /Width {width} /Height {height} /Filter /FlateDecode >>}}%\n'
-             f'{slash}special{{pdf:put @resources << /XObject << /DistrictPeakOriginal @DistrictPeakOriginal >> >>}}%\n'
-             f'{slash}special{{pdf:content q {width} 0 0 {height} 0 0 cm /DistrictPeakOriginal Do Q}}%\n'
-             f'{slash}vrule width0pt height{height}bp depth0pt{slash}kern{width}bp'+'}}}\n')
-    begin,end = '% BEGIN DISTRICT PEAK IMAGE', '% END DISTRICT PEAK IMAGE'
-    tex = ROOT/'barebones.tex'; source=tex.read_text()
-    block=begin+'\n'+macro+end+'\n'
+    """Refresh a compact vector fallback for the native single-file LaTeX editor."""
+    data=json.loads((ROOT/'district_peak_profiles.json').read_text())['district_fits']
+    lines=[r'\newcommand{\DistrictPeakOriginal}[1]{\resizebox{#1}{!}{%',
+           r'\begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]',
+           r'\definecolor{peakblue}{RGB}{36,105,149}']
+    for index,(name,kind,_) in enumerate(DISTRICTS):
+        f=data[name];row,col=divmod(index,3)
+        lines.append(r'\begin{scope}[shift={('+f'{col*6.05:.2f},{-row*5.05:.2f}'+r')}]')
+        lines.append(r'\node[anchor=west,font=\bfseries\normalsize] at (0,4.1) {'+name+'};')
+        lines.append(r'\node[anchor=west,font=\scriptsize] at (0,3.7) {'+kind+'};')
+        for value in range(0,26,5):
+            y=value*3/28
+            lines.append(r'\draw[gray!18] (0,'+f'{y:.3f}'+') -- (5,'+f'{y:.3f}'+');')
+            lines.append(r'\node[anchor=east] at (-.10,'+f'{y:.3f}'+') {'+str(value)+'};')
+        lines.append(r'\draw (0,3) -- (0,0) -- (5,0);')
+        for hour in [0,6,12,18,24]:
+            x=5*hour/24
+            lines.append(r'\draw ('+f'{x:.3f}'+',0) -- ('+f'{x:.3f}'+',-.08);')
+            lines.append(r'\node[anchor=north] at ('+f'{x:.3f}'+',-.12) {'+f'{hour:02d}'+'};')
+        raw=' '.join(f'({5*(h+.5)/24:.4f},{100*v*3/28:.4f})' for h,v in enumerate(f['daily_arrival_share']))
+        lines.append(r'\draw[peakblue!35,line width=.4pt] plot coordinates {'+raw+'};')
+        step=[]
+        for h,v in enumerate(f['fitted_hourly_share']):
+            step.extend([(5*h/24,100*v*3/28),(5*(h+1)/24,100*v*3/28)])
+        coords=' '.join(f'({x:.4f},{y:.4f})' for x,y in step)
+        lines.append(r'\draw[peakblue,line width=1pt] plot coordinates {'+coords+'};')
+        st,en=f['peak_start_hour'],f['peak_end_hour']
+        note=f'Peak {st:02d}:00--{en:02d}:00'
+        if f['illustrative_mixture']:note+=r'\\Illustrative 50/50 mixture'
+        lines.append(r'\node[anchor=north east,align=right,text=peakblue,font=\scriptsize] at (5,3.45) {'+note+'};')
+        lines.append(r'\end{scope}')
+    lines.extend([r'\node[rotate=90] at (-.95,-3.5) {Share of daily visits (\% per hour)};',
+                  r'\node at (8.5,-10.8) {Source-local hour};',
+                  r'\draw[peakblue,line width=1pt] (3,-11.3) -- (4,-11.3);',
+                  r'\node[anchor=west] at (4.1,-11.3) {Peak/off-peak fit};',
+                  r'\draw[peakblue!35] (9,-11.3) -- (10,-11.3);',
+                  r'\node[anchor=west] at (10.1,-11.3) {Hourly timing profile};',
+                  r'\end{tikzpicture}}}'])
+    begin,end='% BEGIN DISTRICT PEAK IMAGE','% END DISTRICT PEAK IMAGE'
+    tex=ROOT/'barebones.tex';source=tex.read_text()
+    block=begin+'\n'+'\n'.join(lines)+'\n'+end+'\n'
     if begin in source:
-        a=source.index(begin); b=source.index(end,a)+len(end)+1
+        a=source.index(begin);b=source.index(end,a)+len(end)+1
         source=source[:a]+block+source[b:]
-    else:
-        source=source.replace(slash+'begin{document}',block+'\n'+slash+'begin{document}',1)
+    else:source=source.replace(r'\begin{document}',block+'\n'+r'\begin{document}',1)
     tex.write_text(source)
 
 

@@ -1,0 +1,51 @@
+OCTOBER 3 ARTICLE REVISION AUDIT
+
+Publication scope
+main.tex is now the official article through joint schedule selection and matches the
+open barebones.tex. All ten sites are assigned to a phase or left unbuilt in ONE search.
+The complete previous main.tex is preserved unchanged in archive/main-before-queue-revision.tex.
+Its later sensitivity, conclusions, mayor letter and appendix rely on retired models;
+they are not presented as results of the new queue-based model. Git also retains them.
+
+Changes completed
+- Exponential service durations and Poisson arrivals define M/M/c explicitly.
+- Time-dependent birth/death equations propagate peak overload and off-peak recovery.
+- Waiting integral, completion intensity, and terminal backlog feed service/revenue outputs.
+- No random simulation, abandonment, forced peak-capacity sufficiency, or queue resets.
+- TOPSIS formulas removed; common normalization and equal criterion weights stated.
+- Original break-even benchmark retained, with incremental annual profitability serving
+  as a feasibility filter within schedule enumeration; only Phase 1 has a spending cap.
+- Required Task 2-c graph comparison kept concise and separate from local arrival demand.
+- Nine daily timing panels retained; user-chosen 50/50 visit mixtures labeled illustrative.
+- Large raster fallback for those panels replaced by a compact vector fallback.
+
+Preservation and consistency
+Original background, summary opening, forecast core/equations/figures and break-even
+formula/table checked against the preceding source. Missing refs/citations: none.
+Old entropy, distance-optimum and simulation claims are absent from the active article.
+One source mirror is maintained: main.tex and barebones.tex must match when publishing.
+Forecast figure pixels unchanged. District totals remain 2180 EVs and 41 public ports.
+
+Numerical verification
+Run: /opt/anaconda3/bin/python -m unittest -v test_queue_model.py
+Eight checks pass: zero-port Poisson accumulation, exponential completion, stationary
+Erlang C agreement, block-splitting invariance, overload then recovery, additional ports,
+capacity expansion, and invalid initial-state rejection. Overflow is an error monitor,
+not an implemented queue limit; state range is increased until outputs converge.
+Illustrative two-port case: mu=1/hour, initially empty, arrivals3/hour for4hours then
+0.25/hour for12hours. Peak backlog3.963554, final backlog0.010322, total waiting16.350528
+vehicle-hours, completed14.729552, in service0.260126. Conservation residual<1e-12.
+These parameters/results illustrate the mathematics and are not Springfield estimates.
+
+Remaining calibration and results
+Public-use share and recharge fraction, venue-transfer validity and exponential service
+means, billing/variable cost inputs, and initial queue/observation settings remain required.
+The figure's 50/50 mixtures and equal TOPSIS weights are declared modeling assumptions.
+No revised numerical district ranking, optimal site set, or real profitability result is
+claimed. The solver verifies the service mathematics; a calibrated full schedule run and
+updated later competition sections remain future work.
+
+Compilation
+Built-in editor compilation passed after replacing the large timing-image fallback.
+Final saved-source compilation and Git publication are recorded in the delivery message.
+The open editor is retained; no separate PDF or replacement tab is created.
