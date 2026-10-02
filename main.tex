@@ -713,166 +713,70 @@ The forecast provides the registered-EV input for the local weekly occupancy che
 % ======================================================================
 % SECTION 5: TASK 2 — LOCATION OPTIMIZATION
 % ======================================================================
-\section{Task 2: Charging Station Location Optimization}
+\section{$p$-Median Facility-Location Formulation}
+\label{subsec:pmedian}
 
-\subsection{Site Attributes and the Facility-Location Objective}
-
-A charging station is useful only if drivers can reach it. This one fact fixes the
-objective of our location model. A driver who needs a charge travels to the nearest open
-station, so the quantity that matters is the distance from each district to its closest
-station, not a sum of priority scores attached to individual sites. We weight that
-distance by the district's demand, because a mile of extra travel matters more in a
-district with many electric cars than in one with few.
-
-Each district $i$ carries a demand weight $w_i = S_i / 100$, the TOPSIS score of
-Section 4 rescaled to the unit interval. A station in district $j$ serves every district
-$i$ within the five-mile coverage radius, the same five-mile threshold the problem uses for
-the connectivity task of Section 5.5, so the coverage constraint and the connectivity
-analysis share one distance standard. The cost of a layout is the sum, over districts,
-of $w_i$ times the distance to district $i$'s nearest station. This is the
-demand-weighted travel distance, and it is what the model minimizes.
-
-Two feasibility filters carry over from the site data. A site must be developable and must
-be able to absorb the demand it serves:
+We formalize the objective as a $p$-median facility-location problem \cite{daskin1995}. Let $y_j \in \{0,1\}$ indicate whether site $j$ is opened, and let $x_{ij} \in \{0,1\}$ indicate whether district $i$ is assigned to the station at site $j$. The model chooses open sites and assigns every district to one open site so as to minimize the demand-weighted travel distance:
 
 \begin{equation}
-L_s \ge 3 \qquad \text{(land availability at least 3 of 5)},
-\end{equation}
-
-\begin{equation}
-M_s \ge 4 \qquad \text{(capacity of at least 4 chargers)}.
-\end{equation}
-
-The land filter excludes S9 (Mall District), whose land score is 2, from the Phase-1
-candidate set; every other site passes. This minimum-size filter is non-binding, because all ten
-sites host at least four chargers. It is not an occupancy sufficiency test. The retained
-location optimum is a spatial baseline; district-level capacity is checked separately in
-Section \ref{sec:weeklycapacity}. Table \ref{tab:sites} lists the site-level data.
-
-\begin{table}[H]
-\centering
-\caption{Candidate Site Data: Demand Weight, Cost, and Feasibility}
-\label{tab:sites}
-\renewcommand{\arraystretch}{0.95}
-\begin{tabular}{@{}p{0.05\textwidth}p{0.20\textwidth}p{0.12\textwidth}p{0.18\textwidth}p{0.08\textwidth}p{0.08\textwidth}@{}}
-\toprule
-Site & District & $w_i$ & Install (\$) & Land & Max \\
-\midrule
-S1 & Downtown & 0.7224 & 450,000 & 3 & 10 \\
-S2 & Downtown & 0.7224 & 380,000 & 4 & 8 \\
-S3 & Northside & 0.4188 & 300,000 & 5 & 6 \\
-S4 & Southside & 0.4475 & 280,000 & 4 & 6 \\
-S5 & Eastside & 0.5380 & 320,000 & 5 & 6 \\
-S6 & Westside & 0.4058 & 250,000 & 5 & 4 \\
-S7 & University & 0.4680 & 350,000 & 3 & 8 \\
-S8 & Industrial & 0.3546 & 400,000 & 4 & 10 \\
-S9 & Mall District & 0.5030 & 500,000 & 2 & 12 \\
-S10 & Riverside & 0.2611 & 350,000 & 5 & 6 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{$p$-Median Facility-Location Formulation}
-
-We formalize the objective as a $p$-median facility-location problem
-\cite{Daskin1995}. Let $y_j\in\{0,1\}$ indicate whether site $j$ is opened, and let
-$x_{ij}\in\{0,1\}$ indicate whether district $i$ is assigned to the station at site $j$.
-The model chooses open sites and assigns every district to one open site so as to minimize
-the demand-weighted travel distance:
-
-\begin{equation}
-\min \sum_{i=1}^{9}\sum_{j=1}^{10} w_i\, d_{ij}\, x_{ij}
+\min \sum_{i=1}^{9} \sum_{j=1}^{10} w_i \, d_{ij} \, x_{ij}
+\label{eq:pmedian-obj}
 \end{equation}
 
 subject to
 
-\begin{equation}
-\sum_{j=1}^{10} x_{ij} = 1, \qquad i=1,\dots,9 \qquad \text{(every district is served)}
-\end{equation}
+\begin{align}
+\sum_{j=1}^{10} x_{ij} &= 1, \qquad i = 1,\ldots,9 \qquad \text{(every district is served)} \label{eq:serve} \\
+x_{ij} &\le y_j, \qquad i = 1,\ldots,9,\; j = 1,\ldots,10 \qquad \text{(only open stations serve)} \label{eq:open} \\
+x_{ij} &= 0 \;\; \text{whenever } d_{ij} > 5 \qquad \text{(coverage radius)} \label{eq:radius} \\
+\sum_{j=1}^{10} c_j \, y_j &\le 200 \qquad \text{(budget: \$2{,}000{,}000)} \label{eq:budget} \\
+4 \le \sum_{j=1}^{10} y_j &\le 6 \qquad \text{(station count)} \label{eq:count} \\
+L_j \ge 3 y_j, \quad M_j &\ge 4 y_j \qquad \text{(land and capacity filters)} \label{eq:filters} \\
+y_j, x_{ij} &\in \{0,1\}. \label{eq:binary}
+\end{align}
 
-\begin{equation}
-x_{ij} \le y_j, \qquad i=1,\dots,9,\; j=1,\dots,10 \qquad \text{(only open stations serve)}
-\end{equation}
+The first three constraints define the assignment. The coverage radius forces $x_{ij} = 0$ when district $i$ lies more than five miles from site $j$, so no district is assigned to a station it cannot reach. Because drivers always choose the nearest station, in an optimal solution district $i$ is assigned to the closest open site, so the assignment variables $x_{ij}$ are determined once the open sites $y_j$ are chosen. We can therefore solve the model by enumerating the open sets directly.
 
-\begin{equation}
-x_{ij} = 0 \;\; \text{whenever } d_{ij} > 5 \qquad \text{(coverage radius)}
-\end{equation}
+\textbf{Why $p$-median rather than maximal covering?} A maximal-covering model asks only whether a district lies within the radius and ignores the distance inside it. With a five-mile radius and nine compact districts, a few central stations already cover every district, so maximal covering stops discriminating after three stations. The $p$-median objective keeps rewarding smaller distances after coverage is met, so it ranks layouts precisely.
 
-\begin{equation}
-\sum_{j=1}^{10} c_j\, y_j \le 200 \qquad \text{(budget: \$2,000,000)}
-\end{equation}
-
-\begin{equation}
-4 \le \sum_{j=1}^{10} y_j \le 6 \qquad \text{(station count)}
-\end{equation}
-
-\begin{equation}
-L_j \ge 3 y_j, \qquad M_j \ge 4 y_j \qquad \text{(land and capacity filters)}
-\end{equation}
-
-\begin{equation}
-y_j,\; x_{ij} \in \{0,1\}.
-\end{equation}
-
-The first three constraints define the assignment. The coverage radius forces $x_{ij}=0$
-when district $i$ lies more than five miles from site $j$, so no district is assigned to a
-station it cannot reach. Because drivers always choose the nearest station, in an optimal
-solution district $i$ is assigned to the closest open site, so the assignment variables
-$x_{ij}$ are determined once the open sites $y_j$ are chosen. We can solve the
-model by enumerating the open sets directly.
-
-Why $p$-median rather than maximal covering? A maximal-covering model asks only whether a
-district lies within the radius and ignores the distance inside it. With a five-mile radius
-and nine compact districts, a few central stations already cover every district, so maximal
-covering stops discriminating after three stations. The $p$-median objective keeps
-rewarding smaller distances after coverage is met, so it ranks layouts precisely. We
-minimize weighted distance rather than maximize coverage.
+\textbf{Why not include maintenance cost or break-even in the objective?} The $p$-median objective is deliberately spatial: it minimizes demand-weighted travel distance and leaves economic viability to Section~\ref{sec:expansion}. That separation is intentional. Break-even depends on charger utilization, which is a system-wide quantity, not a site-level one, so embedding it in site selection would double-count economic considerations and obscure the spatial logic. Section~\ref{subsec:break-even} evaluates the selected sites against their break-even thresholds and finds that five of the six Phase-1 stations reach break-even under the 2030 forecast, while S8 (Industrial) is a coverage investment rather than a revenue-generating one. If the Council requires every Phase-1 station to break even within three years, S8 should be deferred to Phase 2, and the $p$-median optimum shifts to five stations --- the trade-off already captured in the sensitivity analysis of Table~\ref{tab:forced-station}.
 
 With ten candidate sites the feasible sets number at most
-$\binom{10}{4}+\binom{10}{5}+\binom{10}{6}=672$, so we enumerate every feasible
-combination, evaluate its demand-weighted distance, and keep the smallest, breaking ties by
-lower cost. The result is provably optimal.
+\[
+\binom{10}{4} + \binom{10}{5} + \binom{10}{6} = 672,
+\]
+so we enumerate every feasible combination, evaluate its demand-weighted distance, and keep the smallest, breaking ties by lower cost. The result is provably optimal.
 
 \subsection{Optimal Phase-1 Selection}
+\label{subsec:phase1}
 
-The enumeration returns the optimum in Table \ref{tab:phase1}.
+The enumeration returns the optimum in Table~\ref{tab:phase1}.
 
 \begin{table}[H]
 \centering
-\caption{Optimal Phase-1 Station Selection}
+\caption{Optimal Phase-1 station selection.}
 \label{tab:phase1}
-\renewcommand{\arraystretch}{0.95}
-\begin{tabular}{@{}p{0.07\textwidth}p{0.24\textwidth}p{0.14\textwidth}p{0.18\textwidth}p{0.14\textwidth}@{}}
+\begin{tabular}{llccc}
 \toprule
-Site & District & Weight $w_i$ & Install Cost & Residual \\
+Site & District & Weight $w_j$ & Install cost & Residual (mi) \\
 \midrule
-S2 & Downtown & 0.7224 & \$380,000 & 0.00 \\
-S3 & Northside & 0.4188 & \$300,000 & 0.00 \\
-S4 & Southside & 0.4475 & \$280,000 & 0.00 \\
-S5 & Eastside & 0.5380 & \$320,000 & 0.00 \\
-S6 & Westside & 0.4058 & \$250,000 & 0.00 \\
-S8 & Industrial & 0.3546 & \$400,000 & 0.00 \\
+S2 & Downtown   & 0.7224 & \$380{,}000 & 0.00 \\
+S3 & Northside  & 0.4188 & \$300{,}000 & 0.00 \\
+S4 & Southside  & 0.4475 & \$280{,}000 & 0.00 \\
+S5 & Eastside   & 0.5380 & \$320{,}000 & 0.00 \\
+S6 & Westside   & 0.4058 & \$250{,}000 & 0.00 \\
+S8 & Industrial & 0.3546 & \$400{,}000 & 0.00 \\
 \midrule
-\multicolumn{2}{l}{\textbf{Total}} & --- & \$1,930,000 & 3.35 \\
+\multicolumn{2}{l}{Total} & --- & \$1{,}930{,}000 & 3.35 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The $p$-median optimum selects six stations across six distinct districts, spending
-\$1.93 million of the \$2.0 million budget and leaving the demand-weighted travel distance
-at 3.35 miles. The model places one station per district. It does not double up in Downtown,
-because a second Downtown station saves no travel distance once S2 already serves the
-district at zero miles. Figure \ref{fig:placement} shows the placement on the district
-graph.
+The $p$-median optimum selects six stations across six distinct districts, spending \$1.93 million of the \$2.0 million budget and leaving the demand-weighted travel distance at 3.35 miles. The model places one station per district. It does not double up in Downtown, because a second Downtown station saves no travel distance once S2 already serves the district at zero miles. Figure~\ref{fig:phase1-graph} shows the placement on the district graph.
 
-The most instructive choice is S8 (Industrial). Industrial has only the eighth-highest
-demand (0.3546), yet it is selected ahead of Mall District (0.5030) and University
-(0.4680), because of distance. Industrial's only neighbor within five miles is Southside, so
-without its own station its drivers face a 3.5-mile drive. Mall District and University
-already sit within two miles of a Phase-1 station, so their residual travel is small. The
-$p$-median objective weighs this residual distance and finds the 3.5-mile Industrial gap
-costlier than the two-mile Mall or University gap. Mall District, University, and Riverside
-defer to later phases, when their own demand justifies a dedicated station.
+The most instructive choice is S8 (Industrial). Industrial has only the eighth-highest demand (0.3546), yet it is selected ahead of Mall District (0.5030) and University (0.4680), because of distance. Industrial's only neighbor within five miles is Southside, so without its own station its drivers face a 3.5-mile drive. Mall District and University already sit within two miles of a Phase-1 station, so their residual travel is small. The $p$-median objective weighs this residual distance and selects the peripheral site.
+
+A note on economic viability. S8 also has the highest break-even count among the six selected sites, at 1{,}240 EVs, against only 110 registered EVs in Industrial today. It is therefore a coverage investment, not a revenue-generating one, and it is the first station to be dropped if the budget tightens or if costs rise (Section~\ref{subsec:sensitivity}). Section~\ref{subsec:break-even} formalizes this check.
 
 \begin{figure}[htbp]
 \centering
