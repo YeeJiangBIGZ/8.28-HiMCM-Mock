@@ -1,13 +1,14 @@
 # 8.28 HiMCM Mock — Overleaf/GitHub project
 
 - `main.tex` — existing full paper; retained unchanged during the bare-bones draft.
-- `barebones.tex` — preservation-first revision through Section 6.3, about 15 pages of
-  front matter and substantive content, with references afterward. Restores original
-  background, applicable assumptions, forecast prose/figures and financial break-even
-  equation/table. Revised sections explain behavioral demand, waiting/revenue TOPSIS,
-  Phase-1-only budget and later financially viable expansion by schedule enumeration.
-  Original forecast pixels are embedded for the native single-file preview; project builds
-  use the original PNGs. Local frequency inputs and numerical queue results remain uncalibrated.
+- `barebones.tex` — revised article with a full-page workflow, assumptions at first use,
+  explicit Poisson-arrival/general-duration queue model, and compact waiting/revenue
+  TOPSIS. Forecast and financial break-even inputs precede one joint schedule search
+  in Section 5; the duplicate Section 6 is removed. Original background, forecast core,
+  break-even derivation/table and figure pixels are preserved. The native single-file
+  preview embeds the original forecast figures; project builds use their PNGs.
+  Charging calibration, observation length/initial state and numerical queue results
+  remain unspecified. References follow the substantive content; no fixed page target.
 - `section4 newdraft.tex` — teammate's empty draft file retained from Overleaf.
 - Existing `ev_*.png` and `temp_arima_forecast.png` — original paper figures; the old
   break-even/utilization-sweep assets are retained as history but no longer cited.

@@ -5211,8 +5211,8 @@ measures how additional chargers reduce waiting and increase completed charging 
 TOPSIS combines waiting savings and additional revenue into a priority score between
 0 and 100.
 
-To select the first stations, we evaluate every valid combination of four to six sites
-within a two-million-dollar budget. Each combination is assessed by the service and
+To select station locations and opening phases, we evaluate complete construction
+schedules whose first phase contains four to six sites within a two-million-dollar budget. Each schedule is assessed by the service and
 revenue it provides, accounting for existing chargers and the capacity of the new sites.
 The district graph identifies central and peripheral areas and allows us to evaluate
 the effect of requiring a station in a highly connected district.
@@ -5220,8 +5220,8 @@ the effect of requiring a station in a highly connected district.
 To plan the future, we forecast electric-vehicle growth with a time-series model. This
 model extends the recent growth trend rather than imposing a fixed curve, and it projects
 about 3,200 vehicles by 2025 and 11,900 by 2030. These forecasts increase the charging
-demand entering the same service model. We retain the financial break-even analysis
-and evaluate opening each candidate site in one of three phases, or leaving it unbuilt.
+demand entering the same service model. Financial break-even screens investment viability
+before the joint search evaluates opening each candidate site in one of three phases, or leaving it unbuilt.
 After Phase 1, expansion has no fixed budget ceiling; later investments must be
 financially beneficial.
 
@@ -5283,127 +5283,49 @@ for construction benefits, ARIMA for the EV forecast, and exhaustive enumeration
 phased site selection. Financial break-even connects the service model to expansion
 viability. These methods connect the tasks into one framework.
 
+\clearpage
 \subsection{Our Work and Overall Framework}
+Our framework connects charging demand to one joint decision about station locations
+and opening phases. Figure~\ref{fig:workflow} shows how each calculation supplies the
+next stage.
 
-Our solution proceeds in three stages, mirroring the three modeling tasks.
-
-\textbf{Stage 1 (Data and Demand Assessment)} screens the raw data, estimates public
-charging visits from EV registrations and charging habits, and forecasts registrations
-with ARIMA through 2030.
-
-\textbf{Stage 2 (Core Optimization)} calculates waiting savings and charging revenue
-at alternative capacities. TOPSIS combines these outcomes into construction utility,
-and feasible site combinations are evaluated under the Phase-1 budget and station count.
-A district connectivity graph describes the geographical network.
-
-\textbf{Stage 3 (Expansion and Recommendation)} applies the same demand model to future
-years, evaluates financial break-even, and compares complete construction schedules.
-The selected schedule supplies the initial sites and subsequent expansion stages.
-
-\begin{figure}[htbp]\centering
-\begin{tikzpicture}[node distance=5mm,box/.style={draw,rounded corners,align=center,
-text width=0.87\textwidth,inner sep=6pt,font=\small},arr/.style={-{Stealth},thick}]
-\node[box,fill=blue!6] (a) {\textbf{Data and demand}\\District registrations and existing ports
-$\longrightarrow$ public visits, arrival timing, and EV forecast};
-\node[box,fill=green!6,below=of a] (b) {\textbf{Service and construction benefit}\\
-Queue simulation $\longrightarrow$ waiting saved and revenue $\longrightarrow$ TOPSIS};
-\node[box,fill=orange!8,below=of b] (c) {\textbf{Deployment}\\Phase-1 budget and financial
-break-even $\longrightarrow$ schedule enumeration $\longrightarrow$ phased recommendation};
+\begin{figure}[H]\centering
+\begin{tikzpicture}[node distance=9mm,
+box/.style={draw,rounded corners,align=left,text width=0.85\textwidth,
+minimum height=0.205\textheight,inner sep=10pt,font=\normalsize},
+arr/.style={-{Stealth[length=3mm]},thick}]
+\node[box,fill=blue!6] (a) {
+\textbf{Stage 1: Estimate charging demand}\\[7pt]
+\textbf{Inputs:} registered EVs, charging habits, session timing, and the historical EV series.\\[5pt]
+Estimate weekly visits, divide arrivals into peak and off-peak periods, and forecast
+registrations through 2030.\\[5pt]
+\textbf{Output:} local arrival rates for each planning year.};
+\node[box,fill=green!6,below=of a] (b) {
+\textbf{Stage 2: Evaluate service and financial benefit}\\[7pt]
+\textbf{Inputs:} arrival rates, existing and proposed ports, occupation durations,
+charging receipts, and site costs.\\[5pt]
+Simulate queues to measure waiting saved and completed visits. Calculate revenue,
+check financial viability, and combine service and revenue benefits using TOPSIS.\\[5pt]
+\textbf{Output:} comparable benefits and financial conditions for construction choices.};
+\node[box,fill=orange!8,below=of b] (c) {
+\textbf{Stage 3: Select the complete construction schedule}\\[7pt]
+\textbf{Choices:} open each of ten sites in Phase 1, 2, or 3, or leave it unbuilt.\\[5pt]
+Enumerate all $4^{10}$ schedules. Apply the Phase-1 budget and station count,
+later financial viability, and district coverage requirements.\\[5pt]
+\textbf{Output:} one schedule specifying all selected sites and their opening phases.};
 \draw[arr] (a)--(b);\draw[arr] (b)--(c);
 \end{tikzpicture}
-\caption{Three-stage workflow of the deployment framework.}\label{fig:workflow}
+\caption{Three-stage workflow: demand estimation, benefit evaluation, and joint schedule selection.}
+\label{fig:workflow}
 \end{figure}
-\section{Assumptions and Justification}
+\clearpage
+\section{District Inputs}
+The supplied district data give the registered fleet, existing charging facilities,
+and setting in which demand arises. The nine districts contain 2,180 registered EVs
+and 41 existing chargers. We treat the listed chargers as public ports, each able to
+serve one vehicle at a time; registrations are converted into charging visits in
+Section~\ref{sec:visits}.
 
-We state our modeling assumptions explicitly and justify each one.
-
-\subsection{Demand and Forecasting Assumptions}
-
-\textbf{Assumption 1:} Expected public-charging visits are directly proportional to
-registered EVs within each district when average charging habits remain fixed.
-\textit{Justification:} Holding travel needs and the use of public charging stable gives
-each additional EV the same expected contribution to demand. Charging frequency is
-estimated from driving distance, battery range, and the usual amount recharged in
-Section~\ref{sec:visits}; different districts may have different frequencies.
-
-\textbf{Assumption 2:} Citywide EV adoption can be forecast from its own six-year history
-with an ARIMA time-series model, and it cannot exceed a long-run ceiling of 25,000
-vehicles.
-\textit{Justification:} ARIMA lets the recent data set the trajectory rather than imposing
-a fixed shape, which is the natural choice when the only reliable predictor is the series'
-own past \cite{Box2015, Hyndman2018}. A pure ARIMA has no saturation ceiling and grows
-without bound, so we impose 25,000 vehicles as a conservative business bound. The bound sits
-well above the 2030 forecast of 11,915 vehicles, so it caps only the distant tail and leaves
-the forecast within the displayed horizon unchanged.
-
-\subsection{Spatial and Feasibility Assumptions}
-
-\textbf{Assumption 3:} The candidate sites listed in Table \ref{tab:sites} are the only
-feasible locations, and their reported costs and capacities are accurate.
-\textit{Justification:} The problem supplies these as the decision set. Site-specific
-engineering constraints (electrical service, land) are already reflected in the
-land-availability and maximum-capacity fields.
-
-\textbf{Assumption 4:} For the capacity calculation, registered EVs generate public
-charging demand in their own district according to stable weekly charging habits.
-Demand is not automatically moved to another district because its chargers are vacant.
-\textit{Justification:} This is an explicit simplification that avoids estimating commuting
-and charging detours without destination data. The distance matrix describes geographical connectivity;
-being within five miles does not establish willingness
-to make a dedicated round trip. Spatial coverage and local charging capacity are checked
-separately. Neighboring districts share spare capacity only if a shared facility and a
-fixed demand assignment are justified; no such sharing is assumed in this baseline.
-
-\textbf{Assumption 5:} The district distance matrix is symmetric and represents driving
-distance between district centroids.
-\textit{Justification:} The supplied matrix is symmetric, consistent with road-network
-travel between district centers. We use it for the connectivity graph (Task 2-c).
-
-\textbf{Assumption 6:} The requirement to place ``at least one station in each of the nine
-districts'' is a terminal coverage goal, not a constraint on the first-phase selection.
-\textit{Justification:} The problem asks us to select four to six stations in Phase 1 while
-simultaneously requiring at least one station in each of nine districts. These
-requirements cannot hold together, because nine districts require at least nine stations.
-We resolve the conflict by treating per-district coverage as the goal of the complete
-three-phase rollout (2025--2030), achieved by Phase 3. Phase 1 selects four to six sites under its installation budget. Financial viability
-is assessed separately for subsequent expansion.
-
-\subsection{Economic and Financial Assumptions}
-
-\textbf{Assumption 7:} Each EV generates about \$50 per year in charging revenue in
-the financial benchmark, station installation is amortized over a ten-year horizon,
-and each new station is built to its listed maximum connector capacity.
-\textit{Justification:} These values anchor the break-even analysis in Section~6.
-The benchmark separates the annual cost that must be recovered from the service
-capacity needed to serve customers. The charging-frequency model also calculates
-revenue from completed visits; its connection to the \$50 benchmark is made explicit
-in Section~\ref{sec:finance-link}. No fixed installation budget is imposed after Phase~1.
-
-\section{Variables and Notation}
-Only symbols used across the model are collected here. Other quantities are defined
-where they enter a calculation. Waiting is measured in vehicle-hours and costs in dollars.
-\begin{table}[htbp]\centering\small
-\caption{Core notation.}\label{tab:notation}
-\begin{tabular}{@{}p{0.22\textwidth}p{0.69\textwidth}@{}}\toprule
-Symbol & Meaning\\\midrule
-$E_{i,y},\nu_i,V_{i,y}$ & District EVs, public visits per EV per week, weekly public visits\\
-$\lambda_{i,y}(h),D_i$ & Hourly arrival rate; time for which one visit occupies a port\\
-$c_i^0,c_i(y;z)$ & Existing ports and available ports under schedule $z$\\
-$W_{i,y},S_{i,y},B_{i,y}$ & Total waiting, completed visits, and unfinished waiting backlog\\
-$U_{i,y}$ & Construction utility from waiting savings and revenue\\
-$c_s,m_s,M_s$ & Site installation cost, annual maintenance, and added ports\\
-$z_s$ & Opening phase of site $s$; zero means unbuilt\\\bottomrule
-\end{tabular}\end{table}
-
-\section{Task 1: Charging Demand Assessment}
-\subsection{Data Exploration and Preprocessing}
-Before building any model we examine the raw dataset for quality and structure, confirming
-that the data support the assumptions that follow and flagging values that would distort
-the analysis.
-
-\textbf{Missing values.} Every cell of the district indicator matrix and candidate-site
-table is present, so no imputation is needed. Table~\ref{tab:districts} preserves the
-supplied district inputs. The registrations total 2,180 and existing chargers total 41.
 \begin{table}[htbp]\centering\small
 \caption{City district data supplied in the problem.}\label{tab:districts}
 \begin{tabular}{@{}lrrrcp{0.23\textwidth}@{}}\toprule
@@ -5422,23 +5344,36 @@ Total&120,000&2,180&250&41&\\\bottomrule
 \par\smallskip\footnotesize $^*$Daily traffic in thousands of vehicle movements.
 \end{table}
 
-Registrations describe the local EV population; they are converted into visits rather
-than treated as simultaneous charging demand. Existing ports provide the service
-baseline, and venue type informs arrival timing. Population and road traffic describe
-the district but do not by themselves identify how many public-charging visits it
-receives. In particular, traffic includes repeated movements and non-EVs.
+\section{Variables and Notation}
+Only symbols used across the model are collected here. Other quantities are defined
+where they enter a calculation. Waiting is measured in vehicle-hours and costs in dollars.
+\begin{table}[htbp]\centering\small
+\caption{Core notation.}\label{tab:notation}
+\begin{tabular}{@{}p{0.22\textwidth}p{0.69\textwidth}@{}}\toprule
+Symbol & Meaning\\\midrule
+$E_{i,y},\nu_i,V_{i,y}$ & District EVs, public visits per EV per week, weekly public visits\\
+$\lambda_{i,y}(h),D_i,\mu_i$ & Arrival rate, port-occupation duration, and handling rate per port\\
+$c_i^0,c_i(y;z)$ & Existing ports and available ports under schedule $z$\\
+$W_{i,y},S_{i,y},B_{i,y}$ & Total waiting, completed visits, and unfinished waiting backlog\\
+$U_{i,y}$ & Construction utility from waiting savings and revenue\\
+$c_s,m_s,M_s$ & Site installation cost, annual maintenance, and added ports\\
+$z_s$ & Opening phase of site $s$; zero means unbuilt\\\bottomrule
+\end{tabular}\end{table}
 
+\section{Charging Demand and Investment Benefits}
 \subsection{Estimating Public-Charging Visits}
 \label{sec:visits}
 To estimate the demand that public chargers must serve, we convert the registered fleet
-into expected weekly visits. Under Assumption~1,
+into expected weekly visits. We assume EVs generate public-charging demand in their
+registration district and retain stable average charging habits. This local assignment
+avoids estimating commuting destinations without travel data. With $E_{i,y}$ registered
+EVs and $\nu_i$ public visits per EV per week, expected demand is
 \begin{equation}
 V_{i,y}=E_{i,y}\nu_i.\label{eq:visits}
 \end{equation}
-Here $\nu_i$ is the average number of public visits per registered EV per week. This
-relationship supplies the demand volume used by both the waiting-time and revenue
-calculations. It assumes stable average behavior within a district, rather than a
-correlation established by registration data alone.
+Here $\nu_i$ is the average number of public visits per registered EV per week. Holding $\nu_i$ fixed makes expected public visits directly proportional to registrations
+within a district. This assumption supplies the demand volume for both waiting and
+revenue; districts may have different charging frequencies.
 
 Charging frequency depends on how far people drive and how much driving range they
 replace per visit. Let $d_i$ be weekly driving distance, $L_i$ effective full-battery
@@ -5457,10 +5392,14 @@ $\nu_i\approx0.492q_i/\delta_i$ visits per week. The public-use share and typica
 recharge fraction still determine the local estimate; a national driving average and
 a new-vehicle range are not measurements of Springfield's fleet.
 
-\textbf{Arrival timing.} Weekly volume alone cannot reveal congestion: the same visits
+\subsection{Peak and Off-Peak Arrival Rates}
+\label{sec:arrival-rates}
+Weekly volume alone cannot reveal congestion: the same visits
 may be spread across the week or concentrated in a few hours. We therefore divide the
-week into peak windows $P_i$ with total duration $H_i$ and the remaining hours. If $p_i$
-is the share of visits in those windows, the arrival rate is
+week into peak windows $P_i$ with total duration $H_i$ hours and an off-peak period
+of $168-H_i$ hours. We assume the public ports are available throughout the week.
+Let $p_i$ be the fraction of weekly visits arriving during peak hours. The incoming
+rate $\lambda_{i,y}(h)$, measured in vehicles per hour at weekly time $h$, is
 \begin{equation}
 \lambda_{i,y}(h)=
 \begin{cases}
@@ -5480,107 +5419,133 @@ port-occupation durations. We use matching venue and charger types; these timing
 profiles do not determine local visit frequency. Only the selected profile's peak
 windows, peak share, and duration distribution are needed in the service calculation.
 
-\subsection{Evaluating Waiting and Completed Service}
+\subsection{Queuing Model: Waiting and Completed Service}
 \label{sec:queue}
-The budget may prevent the city from installing enough ports to serve every peak
-immediately. To compare affordable alternatives, we evaluate the waiting they cause
-rather than excluding all temporarily overloaded stations. Arrivals are simulated
-with the rate in Equation~\ref{eq:arrivals}, and each visit occupies one port for a
-sampled duration $D_i$. The duration ends when the port becomes available again; where
-records contain only charging transactions, their duration is an approximation to
-occupation time.
+Charging demand becomes a queue when every available port is occupied. Additional
+ports can reduce this delay, but a limited construction budget may leave some districts
+overloaded during busy hours. We therefore compare the waiting caused by each feasible
+capacity, including capacities that cannot immediately serve every peak.
 
-\textbf{Service approximation.} Within each district, ports are represented by a
-first-come, first-served queue. This treats the district's ports as accessible to the
-same local customers, allowing us to compare total capacity without an unsupported
-within-district catchment model. It may underestimate waiting if access differs
-substantially between sites. This approximation is separate from the assumption that
-EVs charge within their registration district.
+\textbf{Arrivals and service.} We model each district as one first-come, first-served
+queue with $c_i$ parallel charging ports. Pooling ports assumes that customers can use
+the available facilities within their district; it approximates their combined capacity
+without modeling individual station catchments. An arriving vehicle starts charging
+if a port is free and otherwise joins the queue. It leaves the service system when
+it releases the port. Vehicles do not abandon the waiting queue.
 
-The simulation draws Poisson arrival counts within each peak or off-peak block and
-processes visits in arrival order. A vehicle starts when a port is free; otherwise it
-waits for the next release. If $a_k$ and $s_k$ are its arrival and service-start times,
-its waiting time is $s_k-a_k$. Adding a port changes these start times and hence the
-waiting that construction can save. We retain variation in occupation duration rather
-than requiring an identical charge for every vehicle.
-
-For a common observation horizon ending at $T$, let $Q_i(u)$ be the queue length.
-To include both served vehicles and those still waiting, define
+Arrivals follow a Poisson process with the piecewise constant rate in
+Equation~\ref{eq:arrivals}. This assumes independent arrivals within each time block.
+For a block of length $\Delta h$ hours at rate $\lambda$, the number of arrivals satisfies
 \begin{equation}
-W_i(T)=\E\!\left[\int_0^T Q_i(u)\,du\right],\qquad
-B_i(T)=\E[Q_i(T)].\label{eq:waiting}
+N(\Delta h)\sim\operatorname{Poisson}(\lambda\Delta h).
+\label{eq:poisson}
 \end{equation}
-$W_i$ measures total waiting burden, the service outcome that additional chargers are
-intended to reduce. $B_i$ records unfinished demand so that a short reporting window
-cannot conceal unresolved congestion. Waiting continues across peak, daily, and phase
-boundaries. Vehicles do not leave after an invented deadline. A district with no ports
-has zero completed service and an accumulating queue, not zero waiting.
+The distribution allows actual arrivals to fluctuate around the expected number,
+so even moderate average demand can occasionally produce a queue.
 
-Let $S_i(T)$ count expected completed visits and $I_i(T)$ the expected number in service.
-With no initial queue, the accounting identity
+Each visit occupies a port for a random duration $D_i$, sampled independently from
+a duration distribution appropriate to the venue and charger type. The mean duration
+$\tau_i=\E[D_i]$ determines the average handling rate per continuously occupied port:
 \begin{equation}
-\E[A_i(T)]=S_i(T)+B_i(T)+I_i(T)\label{eq:balance}
+\mu_i=\frac{1}{\tau_i},\qquad
+K_i=c_i\mu_i,\qquad
+\rho_i(h)=\frac{\lambda_{i,y}(h)}{K_i}\quad(c_i>0).
+\label{eq:handling}
 \end{equation}
-checks that every arriving request is completed, waiting, or being served. Annual
-waiting is the portion of the queue integral within that year; inherited queues are
-included. Accrued waiting per arrival is not an eventual average wait when a backlog
-remains at the horizon.
+Here $K_i$ is the average full-load handling capacity in vehicles per hour. Comparing
+incoming demand with $K_i$ reveals when queues tend to grow. A peak with $\rho_i>1$
+brings vehicles faster than fully occupied ports can serve them. An off-peak period
+with $\rho_i<1$ provides spare capacity to clear accumulated demand, although random
+arrivals can still cause waiting. A district with no ports completes no visits.
 
-\textbf{Revenue.} Let $r_i$ be the mean receipt per completed charging visit. Gross
-charging receipts in year $y$ are
+For illustration, four ports with a mean occupation time of two hours can handle
+an average of two vehicles per hour when continuously occupied. A sustained arrival
+rate of three vehicles per hour exceeds that capacity; a later rate of one vehicle
+per hour leaves capacity to reduce the backlog. The amount of waiting depends on
+how long both periods last, as well as their rates.
+
+This is a time-varying $M_t/G/c$ queue: $M_t$ denotes Poisson arrivals with a changing
+rate, $G$ a general service-duration distribution, and $c$ parallel ports
+\cite{LarsonOdoni}. Exponential service durations give the special case $M_t/M/c$;
+Poisson arrival counts do not imply Poisson service durations. We retain the general
+duration model so that selecting a distribution can follow the charging records.
+Occupation lasts until the port is released, including connected time after active
+charging where that is recorded.
+
+\textbf{Queue simulation.} Process visits in arrival order. For each visit, record
+its arrival, the time a port becomes available, its service start, and its release
+after duration $D_i$. Waiting is the interval between arrival and service start.
+The queue and occupied ports carry forward from peak to off-peak hours and across
+days. Repeating the simulation estimates expected waiting and completed visits.
+This transient calculation accommodates temporary overload; it does not require a
+steady-state waiting formula or assume that queues disappear when a peak ends.
+
+\textbf{A common comparison period.} Every candidate capacity is evaluated over the
+same interval of $T$ hours, covering the same parts of the week, with a common specified
+initial queue and occupied-port state. This makes differences in waiting attributable
+to construction rather than different observation periods. The measurement period
+$T$ and the 2025--2030 investment horizon are separate: one measures service, while
+the other identifies possible opening dates. The chosen $T$ and initial state are
+required inputs to a numerical comparison.
+
+Let $Q_{i,y}(u)$ be the number waiting at time $u$ in the comparison period. Define
 \begin{equation}
-\mathcal R_{i,y}=r_iS_{i,y}.\label{eq:revenue}
+W_{i,y}(T)=\E\!\left[\int_0^T Q_{i,y}(u)\,du\right],\qquad
+B_{i,y}(T)=\E[Q_{i,y}(T)].\label{eq:waiting}
 \end{equation}
-Charging frequency affects arrivals, which affect the number of visits the ports can
-complete and therefore receipts. Once capacity is saturated, extra demand may mainly
-increase waiting. For energy-based billing, $r_i$ must reflect energy delivered per
-visit; more frequent, smaller charges do not automatically produce more revenue.
-Construction costs and maintenance are considered separately in the financial analysis.
+The area under the queue counts all vehicle-hours spent waiting, including the waiting
+already experienced by vehicles still in line at the end. This is the burden that
+additional ports reduce. For example, ten vehicles waiting for half an hour contribute
+five vehicle-hours. The terminal backlog $B_{i,y}$ records unfinished demand and must
+be reported alongside waiting; the end of observation does not remove those requests.
+A simulation continued into another period carries its remaining queue and occupied ports.
+
+\textbf{Charging revenue.} Let $S_{i,y}(T)$ be the expected completed visits in the
+same period and $r_i$ the average receipt per completed visit. Then
+\begin{equation}
+\mathcal R_{i,y}(T)=r_iS_{i,y}(T).\label{eq:revenue}
+\end{equation}
+Charging frequency affects incoming demand, while the queue determines how much of it
+can be completed and earn revenue. Once ports are saturated, more arrivals may increase
+waiting without increasing receipts. For energy-based billing, $r_i$ reflects the mean
+energy delivered per visit; frequent small charges need not earn more than fewer large
+ones. Annual financial tests use annual completed visits, rather than treating the
+receipts from a shorter observation period as a full year's revenue.
 
 \subsection{TOPSIS Construction Utility}
 \label{subsec:topsis}
-We compare construction alternatives by two outcomes: total waiting saved and additional
-charging revenue. For a district's construction history $\ell$, the benefits in year
-$y$ are measured against the same demand with no new construction:
+We score each construction configuration using waiting saved and additional charging
+revenue. For district $i$ in year $y$, compare configuration $\ell$ with no new construction,
+using the same demand, observation period, and initial state:
 \begin{equation}
 b_{i,y,1}(\ell)=W_{i,y}(0)-W_{i,y}(\ell),\qquad
 b_{i,y,2}(\ell)=\mathcal R_{i,y}(\ell)-\mathcal R_{i,y}(0).
 \label{eq:benefits}
 \end{equation}
-The first measures improvement for drivers; the second measures the additional receipts
-obtained within the planning horizon. Both compare a whole local configuration, so
-multiple stations sharing a district cannot each claim the same benefit independently.
+Here the argument denotes the construction choice and the common $T$ is suppressed.
+Benefits are calculated for the combined ports in a district, so two stations cannot
+each claim the same reduction in waiting or the same customer receipts.
 
-TOPSIS combines these two outcomes by their distance from an ideal alternative
-\cite{Hwang1981}. Let $L_j$ and $H_j$ be the smallest and largest observed benefit for
-criterion $j$ across the evaluated districts, years, and local histories, including
-no-construction baselines. Normalize and weight each benefit:
+TOPSIS converts these two benefits into a comparable construction score
+\cite{Hwang1981}. Let $L_j,H_j$ be the minimum and maximum for criterion $j$ over all
+evaluated districts, years, and configurations, including no-build baselines. With
+positive criterion weights $\omega_1+\omega_2=1$, set
 \begin{equation}
-x_{i,y,j}=\frac{b_{i,y,j}-L_j}{H_j-L_j},\qquad
-v_{i,y,j}=\omega_jx_{i,y,j},\qquad \omega_1+\omega_2=1.
+v_{i,y,j}=\omega_j\frac{b_{i,y,j}-L_j}{H_j-L_j},\qquad
+D^+=\sqrt{\sum_{j=1}^2(v_{i,y,j}-\omega_j)^2},\qquad
+D^-=\sqrt{\sum_{j=1}^2v_{i,y,j}^2}.
 \label{eq:normalize}
 \end{equation}
-Common reference ranges allow waiting hours and dollars to be compared and ensure
-that scores have the same meaning across schedules. The positive weights express the
-relative importance of service and revenue; they are policy choices. A criterion that
-is constant across alternatives is omitted because it cannot distinguish them.
-
-The ideal point achieves the best value in both criteria, $v^+=(\omega_1,\omega_2)$,
-and the negative ideal is $v^-=(0,0)$. The construction score is
+The resulting score is
 \begin{equation}
-D^\pm=\sqrt{\sum_{j=1}^{2}(v_{i,y,j}-v_j^\pm)^2},\qquad
 U_{i,y}=100\frac{D^-}{D^++D^-}.\label{eq:topsis}
 \end{equation}
-A higher score rewards an alternative closer to strong service and revenue outcomes.
-This geometric comparison permits a compromise between the two criteria, although
-weights and normalization still determine which trade-off is preferred. It does not
-guarantee that every balanced option beats every specialized one.
+The same weights and reference ranges apply to every schedule; a larger score means
+greater construction utility under those choices. A constant criterion is omitted;
+if neither criterion varies, all alternatives tie. District priority is assessed using
+the same added capacity in each district, while the schedule search uses actual site
+capacities and costs.
 
-For the district-priority comparison, evaluate the same added capacity in every
-district over the same observation period. This answers where an equal addition would
-be most useful. Site selection then uses the actual candidate capacities and costs.
-The chosen frequency, service inputs, and preference weights must be stated with any
-numerical score; registration counts alone cannot establish the ranking.
 \subsection{Citywide EV Registration Forecast}
 \label{sec:forecast}
 
@@ -5644,18 +5609,110 @@ ARIMA (primary)     & 3{,}242 & 4{,}548 & 6{,}083 & 11{,}915 \\
 
 We adopt ARIMA as the primary forecast for three reasons. Its residuals satisfy the assumptions of statistical inference, whereas the logistic curve imposes an unsupported saturation shape. It follows the recent trend without forcing an early inflection, making it more conservative for public investment. The two models also produce similar near-term forecasts (2025--2027). Their effect on revised expansion dates still requires the independent capacity inputs. The logistic curve is retained as an optimistic upper scenario for subsequent sensitivity analysis.
 
-The forecast provides the registered-EV input for the future capacity analysis in
-Section~\ref{sec:weeklycapacity}. Under a fixed-share assumption, each district retains
-its 2024 share of citywide registrations. Financial break-even is assessed separately
-in Section~\ref{sec:expansion}.
+The forecast provides the registered-EV input for the local demand calculation in
+Section~\ref{sec:weeklycapacity}. Financial break-even is assessed in
+Section~\ref{subsec:break-even} before the joint schedule search.
 
-\section{Task 2: Charging Station Location Optimization}
+\subsection{Future District Demand and Capacity}
+\label{sec:weeklycapacity}
+To apply the citywide forecast to local queues, we assume each district retains its
+2024 share of registrations. Separate district adoption histories are unavailable,
+so this preserves the observed geographical distribution while allowing the fleet to grow:
+\begin{equation}
+E_{i,y}=E_{i,2024}\frac{C_y}{2180}.\label{eq:district-growth}
+\end{equation}
+Together with Equation~\ref{eq:visits}, this raises expected visits to approximately
+1.49 times the 2024 level in 2025 and 5.47 times that level by 2030, holding charging
+habits fixed. The forecast therefore changes both waiting and the number of potential
+paying visits used to evaluate construction.
+
+The construction phases are 2025--2026, 2027--2028, and 2029--2030. Let $z_s\in\{0,1,2,3\}$
+identify the opening phase of site $s$, with zero meaning unbuilt. We assume each selected
+site opens at the start of its phase with its listed maximum capacity and remains open.
+For phase $t(y)$ containing year $y$, the available ports in district $i$ are
+\begin{equation}
+c_i(y;z)=c_i^0+\sum_{s\in\mathcal S_i}M_s\ind\{1\le z_s\le t(y)\}.
+\label{eq:capacity}
+\end{equation}
+Here $\mathcal S_i$ contains that district's candidate sites and $M_s$ is the number of
+ports added by site $s$. This expression sends each candidate schedule's capacity
+into the queue model, where it determines handling capacity $c_i(y;z)\mu_i$.
+
+\subsection{Financial Break-Even and Investment Viability}
+\label{subsec:break-even}\label{sec:expansion}\label{sec:finance-link}
+Financial viability screens proposed investments before schedules are compared.
+The break-even calculation measures the business needed to cover annualized installation
+and maintenance costs.
+
+A station breaks even when the revenue it collects from the EVs it serves covers its
+annualized cost. Let $c_s$ be the installation cost and $m_s$ the annual maintenance cost
+of site $s$. Amortizing installation over a ten-year horizon at $\alpha=0.1$, and assuming
+each EV contributes $R=\$50$ per year in charging revenue, the break-even number of EVs is
+
+\begin{equation}
+\mathrm{BE}_s = \frac{\alpha\, c_s + m_s}{R} = \frac{0.1\, c_s + m_s}{50}.
+\end{equation}
+
+Table \ref{tab:breakeven} reports $\mathrm{BE}_s$ for every site. The lowest threshold is 740 EVs at S6; the most expensive site, S9, needs 1,600.
+
+\begin{table}[H]
+\centering
+\caption{Per-Site Break-Even EV Count}
+\label{tab:breakeven}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.07\textwidth}p{0.24\textwidth}p{0.16\textwidth}p{0.16\textwidth}p{0.14\textwidth}@{}}
+\toprule
+Site & District & Install (\$) & Maint. (\$/yr) & BE (EVs) \\
+\midrule
+S1 & Downtown & 450,000 & 25,000 & 1,400 \\
+S2 & Downtown & 380,000 & 20,000 & 1,160 \\
+S3 & Northside & 300,000 & 18,000 & 960 \\
+S4 & Southside & 280,000 & 15,000 & 860 \\
+S5 & Eastside & 320,000 & 18,000 & 1,000 \\
+S6 & Westside & 250,000 & 12,000 & 740 \\
+S7 & University & 350,000 & 20,000 & 1,100 \\
+S8 & Industrial & 400,000 & 22,000 & 1,240 \\
+S9 & Mall District & 500,000 & 30,000 & 1,600 \\
+S10 & Riverside & 350,000 & 18,000 & 1,060 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Charging frequency and annual receipts.} The $\$50$ benchmark can be related
+to charging habits. Under stable annual demand, let $\eta_i$ be the fraction of requested
+public visits completed. Annual receipts per registered EV are then
+\begin{equation}
+R_i^{\rm EV}=52\nu_i\eta_i r_i.\label{eq:annual-receipt}
+\end{equation}
+Thus frequency affects potential annual revenue, and service capacity affects the
+fraction collected. The benchmark represents $52\nu_i\eta_i r_i=50$. Where queues
+continue growing, annual receipts are calculated from actual simulated annual
+completions; a short peak-period completion count is not extrapolated into annual income.
+
+\textbf{Later investment condition.} Only Phase~1 has a fixed spending cap. For a group
+$G$ of proposed later additions in the same district, annual incremental receipts must
+cover their annualized installation, maintenance, and additional operating costs:
+\begin{equation}
+\Delta\Pi_{G,y}=\Delta\mathcal R^{\rm ann}_{G,y}-\Delta O^{\rm ann}_{G,y}
+-\sum_{s\in G}(0.1c_s+m_s)\ge0.
+\label{eq:viability}
+\end{equation}
+The revenue difference compares the proposed configuration with the same district
+without those additions, holding other openings fixed. $\Delta O^{\rm ann}$ includes
+variable expenses not already counted in maintenance. We apply this annualized test
+in the opening year and subsequent evaluated years. It is the financial screen for
+later phases, rather than a second budget limit. Joint additions in Downtown are
+assessed together to avoid assigning the same customers to both stations.
+
+\section{Joint Station and Construction Schedule Selection}
+\label{sec:selection}
 \subsection{Candidate Sites and Cost}
 \label{subsec:site-attributes}
 The candidate sites convert a demand priority into a concrete investment. Each site
 adds a specified number of ports and incurs installation and annual maintenance costs.
-Table~\ref{tab:sites} retains these supplied attributes; a station is built to its
-listed maximum capacity under Assumption~7.
+We assume the listed candidates are the feasible decision set and their quoted costs
+and capacities are accurate, as supplied by the problem. Table~\ref{tab:sites} gives
+these inputs; each selected station adds its listed maximum number of ports.
 \begin{table}[htbp]\centering\small
 \caption{Candidate site inputs; monetary values are in \$10,000.}\label{tab:sites}
 \begin{tabular}{@{}llrrrr@{}}\toprule
@@ -5687,9 +5744,7 @@ what the first already supplies, preventing double counting of customers and wai
 savings. Every other district has one candidate addition.
 
 \subsection{Phase-1 Selection Constraints}
-Let $z_s$ identify the phase in which site $s$ opens, with $z_s=0$ for an unbuilt site.
-The complete schedule is evaluated jointly in Section~\ref{sec:schedules}; its Phase-1
-part must satisfy
+Using the opening-phase choices $z_s$ defined above, the first phase must satisfy
 \begin{equation}
 \sum_{s=1}^{10}c_s\ind\{z_s=1\}\le2{,}000{,}000,\qquad
 4\le\sum_{s=1}^{10}\ind\{z_s=1\}\le6.
@@ -5701,15 +5756,21 @@ benefit, not additional phase budgets. Candidate sites must also have confirmed 
 and access; the land score is retained for that assessment rather than used as an
 unsupported numerical exclusion threshold.
 
-A high district score alone does not settle the selection. A costly site may consume
-funds that would produce greater combined benefits at several other sites, and future
-demand may favor an early investment whose initial utilization is modest. Enumerating
-complete schedules incorporates these interactions while respecting the initial limit.
-The selected Phase-1 sites are therefore the first part of one joint deployment plan.
+We interpret the requirement for at least one station in each district as a terminal
+coverage goal. Nine districts cannot all receive a new station within the Phase-1
+limit of four to six sites, so coverage is required by the end of Phase~3:
+\begin{equation}
+\sum_{s\in\mathcal S_i}\ind\{z_s>0\}\ge1\qquad(i=1,\ldots,9).
+\label{eq:coverage}
+\end{equation}
+This interpretation reconciles the two requirements. If coverage and later financial
+viability cannot both be satisfied, the feasible set is empty; profitability is not
+assumed merely to force a solution.
 
 \subsection{Station Connectivity Graph Analysis}
 \label{subsec:connectivity}
-Following Task~2-c, districts are nodes and an edge joins two districts whose supplied
+Following Task~2-c, we treat the symmetric distance matrix as driving distances between
+district centroids. Districts are nodes, and an edge joins two districts whose supplied
 distance is at most five miles. With $d_{ij}$ the distance, the adjacency and degree are
 \begin{equation}
 A_{ij}=\ind\{i\ne j,\ d_{ij}\le5\},\qquad k_i=\sum_j A_{ij}.
@@ -5743,159 +5804,39 @@ between the unrestricted best utility and the restricted best utility measures t
 benefit forgone by imposing that geographical requirement. If a best schedule already
 satisfies it, the difference is zero. The comparison uses the same demand, weights,
 and costs as the main selection.
-\section{Task 3: Future Expansion Planning}
-\label{sec:expansion}
-
-\subsection{Financial Break-Even Analysis}
-\label{subsec:break-even}
-
-The Phase-1 selection answers where to build first. To decide \emph{when} to build the next
-stations we separate financial viability from sufficient local connector capacity.
-The following calculation addresses profitability; Section \ref{sec:weeklycapacity}
-evaluates the associated capacity and service needs.
-
-A station breaks even when the revenue it collects from the EVs it serves covers its
-annualized cost. Let $c_s$ be the installation cost and $m_s$ the annual maintenance cost
-of site $s$. Amortizing installation over a ten-year horizon at $\alpha=0.1$, and assuming
-each EV contributes $R=\$50$ per year in charging revenue, the break-even number of EVs is
-
-\begin{equation}
-\mathrm{BE}_s = \frac{\alpha\, c_s + m_s}{R} = \frac{0.1\, c_s + m_s}{50}.
-\end{equation}
-
-Table \ref{tab:breakeven} reports $\mathrm{BE}_s$ for every site. Low-cost, low-maintenance
-sites break even at a few hundred EVs; the most expensive site, S9, needs 1,600.
-
-\begin{table}[H]
-\centering
-\caption{Per-Site Break-Even EV Count}
-\label{tab:breakeven}
-\renewcommand{\arraystretch}{0.95}
-\begin{tabular}{@{}p{0.07\textwidth}p{0.24\textwidth}p{0.16\textwidth}p{0.16\textwidth}p{0.14\textwidth}@{}}
-\toprule
-Site & District & Install (\$) & Maint. (\$/yr) & BE (EVs) \\
-\midrule
-S1 & Downtown & 450,000 & 25,000 & 1,400 \\
-S2 & Downtown & 380,000 & 20,000 & 1,160 \\
-S3 & Northside & 300,000 & 18,000 & 960 \\
-S4 & Southside & 280,000 & 15,000 & 860 \\
-S5 & Eastside & 320,000 & 18,000 & 1,000 \\
-S6 & Westside & 250,000 & 12,000 & 740 \\
-S7 & University & 350,000 & 20,000 & 1,100 \\
-S8 & Industrial & 400,000 & 22,000 & 1,240 \\
-S9 & Mall District & 500,000 & 30,000 & 1,600 \\
-S10 & Riverside & 350,000 & 18,000 & 1,060 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-
-\subsection{Future Demand, Capacity, and Financial Viability}
-\label{sec:weeklycapacity}\label{sec:finance-link}
-The registration forecast determines how much future demand the chosen stations must
-serve. Without separate adoption histories for all districts, we retain their 2024
-shares of the citywide fleet:
-\begin{equation}
-E_{i,y}=E_{i,2024}\frac{C_y}{2180}.\label{eq:district-growth}
-\end{equation}
-This transfers the existing citywide forecast into the local arrival model. Holding
-charging habits fixed, the ARIMA forecast raises visits to approximately 1.49 times
-the 2024 level in 2025 and 5.47 times that level by 2030. A station's opening year
-therefore affects both the waiting before expansion and the service available afterward.
-
-For phase $t(y)$ containing year $y$, available district capacity is
-\begin{equation}
-c_i(y;z)=c_i^0+\sum_{s\in\mathcal S_i}M_s\ind\{1\le z_s\le t(y)\}.
-\label{eq:capacity}
-\end{equation}
-Here $\mathcal S_i$ is the set of candidate sites in district $i$. We assume a site opens
-at the start of its chosen phase and stays open. The same queue calculation then measures
-how the added ports change waiting and completed visits under growing demand. There
-is no fixed EVs-per-port ratio: the service obtained from a port depends on how often
-vehicles arrive and how long they occupy it.
-
-\textbf{Connecting frequency to break-even.} The table in Section~\ref{subsec:break-even}
-uses the stated \$50 annual-revenue benchmark. Its structure is preserved. To relate
-that benchmark to charging behavior, let $\eta_i$ be the proportion of requested public
-visits completed within a representative year. With 52 weeks per planning year,
-\begin{equation}
-R_i^{\rm EV}=52\nu_i\eta_i r_i.\label{eq:annual-receipt}
-\end{equation}
-This is annual receipts per registered EV under stable conditions. The original
-benchmark corresponds to $52\nu_i\eta_i r_i=50$; it does not establish a particular
-charging frequency or fee. With substantial inherited backlog, annual simulation
-completions are used directly instead of this steady-volume approximation. New estimates
-can thus be compared with the benchmark without silently changing its original table.
-
-\textbf{Expansion rule.} Later phases have no fixed spending cap. A proposed later
-investment must generate an incremental annual contribution sufficient to cover its
-annualized installation and maintenance. Using the same ten-year factor $\alpha=0.1$,
-\begin{equation}
-\Delta\Pi_{G,y}=\Delta\mathcal R_{G,y}-\Delta O_{G,y}
--\sum_{s\in G}(0.1c_s+m_s)\ge0.
-\label{eq:viability}
-\end{equation}
-$G$ is a local addition or joint local addition; $\Delta\mathcal R$ compares receipts
-with and without it while holding other openings fixed. $\Delta O$ denotes additional
-variable operating costs not included in maintenance. The original break-even table
-covers capital and maintenance using gross receipts; including variable costs gives
-the stricter test of financial benefit. Applying the test to combined Downtown
-additions avoids treating the same customer revenue as available to both stations.
-
-A site that fails the test can be deferred while demand grows. If a district's station
-never becomes viable by 2030, universal district coverage would require a separately
-identified subsidy or a revised coverage date. The model reports that conflict rather
-than introducing another budget or describing an unprofitable expansion as profitable.
-
-\subsection{Joint Schedule Enumeration}
+\subsection{Exhaustive Schedule Selection}
 \label{sec:schedules}
-The three construction periods are 2025--2026, 2027--2028, and 2029--2030. Each site
-has four choices, $z_s\in\{0,1,2,3\}$, where zero means unbuilt. The complete search
-therefore contains at most $4^{10}=1,048,576$ schedules. Direct enumeration is practical
-for ten candidates and makes every choice traceable to the same service and financial
-calculations.
+Each of the ten sites has four choices: Phase~1, Phase~2, Phase~3, or unbuilt.
+We therefore enumerate at most $4^{10}=1,048,576$ complete schedules. This single search
+determines both the selected locations and every opening phase.
 
-For each feasible schedule, aggregate the annual TOPSIS construction benefits:
+For each schedule $z$, calculate the yearly port counts from Equation~\ref{eq:capacity}
+and evaluate waiting savings and additional revenue under the corresponding forecast
+demand. Combine the district TOPSIS benefits across planning years:
 \begin{equation}
 F(z)=\sum_{y=2025}^{2030}\beta_y\sum_{i=1}^{9}
-\bigl[U_{i,y}(z)-U_{i,y}(0)\bigr].\label{eq:schedule-objective}
+\bigl[U_{i,y}(z)-U_{i,y}(0)\bigr],\qquad
+z^*=\underset{z\in\mathcal F}{\arg\max}\ F(z).
+\label{eq:schedule-objective}
 \end{equation}
-The nonnegative weights $\beta_y$ describe the importance given to each year's benefit;
-equal values treat years equally. The utility in a year includes every station already
-open and the queue inherited from earlier years. Comparing against the same no-build
-history credits each district's improvement once, rather than adding overlapping
-standalone station scores. The TOPSIS reference scales remain fixed across schedules.
+$\mathcal F$ contains schedules satisfying the Phase-1 budget and station count,
+terminal district coverage, site feasibility, and the financial condition for later
+additions. The nonnegative weights $\beta_y$ state the importance assigned to each
+year; equal weights value years equally. $U_{i,y}(0)$ is the no-new-construction
+baseline. All capacities already open in a district are evaluated together, so their
+benefits are counted once.
 
-\textbf{Computational procedure.} First generate a common set of local arrivals and
-occupation durations for each simulation replication. For every district, evaluate
-its possible opening histories continuously through the planning horizon. Downtown
-has $4^2=16$ local histories and each other district has four, so only 48 local histories
-are needed per replication. Store their annual waiting, completed visits, backlog,
-and receipts. This reuse is possible because requests stay within their districts;
-using only a year's port count would lose the effect of earlier congestion.
-
-Next enumerate complete schedules and apply the Phase-1 restrictions in
-Equation~\ref{eq:phaseone}, site feasibility, and the financial test for later additions.
-Evaluate terminal district coverage under Assumption~6. For schedules satisfying these
-conditions, combine their stored local histories and calculate
-Equation~\ref{eq:schedule-objective}. Select the highest utility, breaking ties by
-lower installation cost. If no schedule satisfies both universal coverage and later
-financial viability, identify the districts creating the conflict.
-
-\textbf{Interpreting the result.} The selected schedule should be reported with its
-Phase-1 sites, subsequent openings, installation and maintenance costs, cumulative
-ports, waiting saved, completed visits, receipts, and unfinished backlog. These physical
-outcomes explain what the utility score means for the city. The financial benchmark,
-the queue calculation, and the connectivity comparison answer complementary questions:
-can an investment cover its costs, how much service does it improve, and what geographical
-requirement does it satisfy?
-
-The search is exhaustive for the candidate set and the evaluated objective. Its practical
-recommendation remains conditional on charging frequency, the selected timing and
-occupation profiles, and the stated policy weights. Repeated simulations with common
-inputs should establish that the leading choices are distinguishable before reporting
-a numerical optimum; the original placement result is not automatically an optimum
-under this revised objective.
+The search proceeds as follows:
+\begin{enumerate}
+\item Enumerate opening-phase choices and discard schedules that violate the initial
+budget, station count, or terminal coverage.
+\item Evaluate queue performance and annual receipts for each remaining schedule,
+using common arrival and service samples when comparing alternatives. Reject later
+additions that fail the financial condition.
+\item Calculate $F(z)$ with the same TOPSIS weights and reference ranges throughout.
+Choose its maximum, breaking ties by lower total installation cost.
+\end{enumerate}
+The resulting $z^*$ specifies the complete three-phase construction schedule.
 
 \par\label{lastcontent}
 \typeout{ARTICLE-CONTENT-END-PAGE: \thepage}
@@ -5910,6 +5851,11 @@ Hoboken, NJ: Wiley, 2015.
 R. J. Hyndman and G. Athanasopoulos,
 \emph{Forecasting: Principles and Practice}, 2nd ed.
 Melbourne: OTexts, 2018.
+
+\bibitem{LarsonOdoni}
+R. C. Larson and A. R. Odoni, \emph{Urban Operations Research}.
+Prentice-Hall, 1981, Chapter 4, Sections 4.6 and 4.8.
+\url{https://web.mit.edu/urban_or_book/www/book/chapter4/4.8.html}.
 
 \bibitem{Hwang1981}
 C. L. Hwang and K. Yoon,
