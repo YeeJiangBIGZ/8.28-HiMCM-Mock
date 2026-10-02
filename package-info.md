@@ -1,6 +1,9 @@
 # 8.28 HiMCM Mock — Overleaf/GitHub project
 
-- `main.tex` — paper source, including the registered-EV weekly occupancy revision.
+- `main.tex` — existing full paper; retained unchanged during the bare-bones draft.
+- `barebones.tex` — standalone revised Sections 1–5: concise local assumptions, nine-row
+  notation table, peak/off-peak queues, two-criterion TOPSIS and exhaustive scheduling.
+  Forecast methods/results retained; no new rankings or Section 6 implementation.
 - `section4 newdraft.tex` — teammate's empty draft file retained from Overleaf.
 - Existing `ev_*.png` and `temp_arima_forecast.png` — original paper figures; the old
   break-even/utilization-sweep assets are retained as history but no longer cited.
