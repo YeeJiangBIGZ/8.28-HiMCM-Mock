@@ -650,6 +650,7 @@ a present bottleneck.
 
 The deployment roadmap in Task~3 depends on knowing when demand will exceed installed charger capacity. This section forecasts citywide EV registrations through 2030, with particular attention to 2025--2027 as required by Task~1c. We compute an ARIMA time-series model as the primary method and a logistic S-curve as a technology-diffusion baseline.
 
+\subsubsection{ARIMA vs. Logistics modeling}
 The ARIMA model describes a time series using its own past values (autoregressive terms) and past errors (moving-average terms), imposing no predetermined shape. The Augmented Dickey--Fuller test fails to reject a unit root in the level and first difference, so we difference twice and set $d = 2$. With $C_t$ the registrations in year $t$ and $\nabla^2 C_t = C_t - 2C_{t-1} + C_{t-2}$, the general model is
 
 \begin{equation}
@@ -679,7 +680,7 @@ C_t = \frac{K}{1 + e^{-r(t - t_0)}},
 
 where $r$ is the growth rate and $t_0$ the inflection point. Fitting this curve to the same data provides a useful upper-bound scenario. We do not adopt it as the primary forecast, because the short series shows no clear evidence of saturation, and the imposed S-shape may overstate long-run growth.
 
-\subsection{Forecast Comparison}
+\subsubsection{Forecast Comparison}
 \label{subsec:forecast-compare}
 
 Figure~\ref{fig:ev-forecast} overlays the historical data, the ARIMA forecast with its 95\% interval, the logistic baseline, and the 25{,}000-vehicle cap. Table~\ref{tab:forecast-compare} lists the point forecasts. The two models agree closely through 2026, then diverge: the logistic curve reaches 14{,}751 vehicles by 2030, while ARIMA reaches 11{,}915. The ARIMA uncertainty band widens over time but remains below the logistic curve. The revised occupancy model uses these forecasts as demand inputs; expansion years depend on calibrated public charging frequency, connector occupancy and the planning utilization target.
@@ -695,25 +696,17 @@ Figure~\ref{fig:ev-forecast} overlays the historical data, the ARIMA forecast wi
 \centering
 \caption{EV registration forecast: ARIMA versus logistic baseline.}
 \label{tab:forecast-compare}
-\begin{tabular}{lcc}
+\begin{tabular}{lcccc}
 \toprule
-Year & Logistic (baseline) & ARIMA (primary) \\
+Model & 2025 & 2026 & 2027 & 2030 \\
 \midrule
-2025 & 3{,}228 & 3{,}242 \\
-2026 & 4{,}734 & 4{,}548 \\
-2027 & 6{,}725 & 6{,}083 \\
-2030 & 14{,}751 & 11{,}915 \\
+Logistic (baseline) & 3{,}228 & 4{,}734 & 6{,}725 & 14{,}751 \\
+ARIMA (primary)     & 3{,}242 & 4{,}548 & 6{,}083 & 11{,}915 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Model Selection and Adopted Forecast}
-\label{subsec:forecast-selection}
-
 We adopt ARIMA as the primary forecast for three reasons. Its residuals satisfy the assumptions of statistical inference, whereas the logistic curve imposes an unsupported saturation shape. It follows the recent trend without forcing an early inflection, making it more conservative for public investment. The two models also produce similar near-term forecasts (2025--2027). Their effect on revised expansion dates still requires the independent capacity inputs. The logistic curve is retained as an optimistic upper scenario for the sensitivity analysis in Section~\ref{sec:expansionsensitivity}.
-
-\subsection{Implications for Deployment Planning}
-\label{subsec:forecast-implications}
 
 The forecast provides the registered-EV input for the local weekly occupancy checks in Section~\ref{sec:weeklycapacity}. A stated fixed-share assumption can project each district's EV count from the citywide total. Expansion is required when expected peak occupancy exceeds the target share of local connectors. Public charging frequency and the target remain unset, so no numerical opening years or universal supported-EV ratio are asserted. Financial break-even and the retained site ordering are reported separately in Section~\ref{sec:expansion}.
 
