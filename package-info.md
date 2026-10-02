@@ -1,11 +1,13 @@
 # 8.28 HiMCM Mock — Overleaf/GitHub project
 
 - `main.tex` — existing full paper; retained unchanged during the bare-bones draft.
-- `barebones.tex` — expanded standalone article through Section 6.3, targeting 15 pages:
-  explained demand/queue equations, measured source summaries, retained forecasts,
-  waiting and backlog without abandonment, TOPSIS, finance, schedule enumeration,
-  and connectivity. Local demand scale, prices and preference weights remain parameters;
-  numerical queue rankings and a new optimized construction schedule are not claimed.
+- `barebones.tex` — preservation-first revision through Section 6.3, about 15 pages of
+  front matter and substantive content, with references afterward. Restores original
+  background, applicable assumptions, forecast prose/figures and financial break-even
+  equation/table. Revised sections explain behavioral demand, waiting/revenue TOPSIS,
+  Phase-1-only budget and later financially viable expansion by schedule enumeration.
+  Original forecast pixels are embedded for the native single-file preview; project builds
+  use the original PNGs. Local frequency inputs and numerical queue results remain uncalibrated.
 - `section4 newdraft.tex` — teammate's empty draft file retained from Overleaf.
 - Existing `ev_*.png` and `temp_arima_forecast.png` — original paper figures; the old
   break-even/utilization-sweep assets are retained as history but no longer cited.
